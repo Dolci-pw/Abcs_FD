@@ -1,0 +1,54 @@
+#!/bin/bash
+
+#SBATCH --job-name=devito_mintrop_fwi_marmousi
+#SBATCH --time=0-23:59:00
+#SBATCH --partition=intel_small
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=40
+
+module load py-devito-4.2.1-gcc-8.3.0-4imtovj
+module load intel/2020.0.166
+module load py-matplotlib-3.1.2-gcc-8.3.0-mdvfr45
+module load gnu8/8.3                                        
+module load py-devito-4.2.1-gcc-8.3.0-4imtovj               
+module load py-jupyter-core-4.6.0-gcc-8.3.0-7pch7j6         
+module load py-jupyter-client-5.3.4-gcc-8.3.0-xjxx52r       
+module load py-ipykernel-5.1.0-gcc-8.3.0-pnhvx73            
+module load py-nbconvert-5.6.0-gcc-8.3.0-cocw4d6            
+module load py-ipython-genutils-0.2.0-gcc-8.3.0-uf4o45w     
+module load py-setuptools-41.4.0-gcc-8.3.0-73y6pbp          
+module load py-traitlets-4.3.3-gcc-8.3.0-2bzs6tu            
+module load py-defusedxml-0.5.0-gcc-8.3.0-kx2t6ed           
+module load py-testpath-0.4.2-gcc-8.3.0-i5wfoxe             
+module load py-pandocfilters-1.4.2-gcc-8.3.0-xvyyfnw        
+module load py-bleach-3.1.0-gcc-8.3.0-vogfgib               
+module load py-entrypoints-0.3-gcc-8.3.0-w64fsom            
+module load py-nbformat-4.4.0-gcc-8.3.0-jkatgmq             
+module load py-jinja2-2.10.3-gcc-8.3.0-lxh7yfs              
+module load py-mistune-0.8.4-gcc-8.3.0-pbgb6rx              
+module load py-markupsafe-1.1.1-gcc-8.3.0-tj73cyb           
+module load py-decorator-4.4.0-gcc-8.3.0-d4cmwzv            
+module load py-notebook-6.0.1-gcc-8.3.0-5mrqelm             
+module load py-prometheus-client-0.7.1-gcc-8.3.0-geq53ae    
+module load py-terminado-0.8.1-gcc-8.3.0-hsojx2y            
+module load py-send2trash-1.5.0-gcc-8.3.0-e4ds5lm           
+module load py-ipython-7.3.0-gcc-8.3.0-pmkqeyv              
+module load py-pexpect-4.6.0-gcc-8.3.0-lwpj2d6              
+module load py-ptyprocess-0.5.1-gcc-8.3.0-tiytcov           
+module load py-pickleshare-0.7.4-gcc-8.3.0-xchpyts          
+module load py-backcall-0.1.0-gcc-8.3.0-uu5tome             
+module load py-prompt-toolkit-2.0.9-gcc-8.3.0-cvwdfcq       
+module load py-wcwidth-0.1.7-gcc-8.3.0-53vzf6q              
+module load py-matplotlib-3.1.2-gcc-8.3.0-mdvfr45   
+module load py-scipy-1.4.1-gcc-8.3.0-oyx6nn2                    
+module load py-numpy-1.18.1-gcc-8.3.0-npn5loa                   
+module load py-pip-19.3-gcc-8.3.0-omtj7r6                       
+module load py-pygments-2.4.2-gcc-8.3.0-wx4pb2x 
+
+export DEVITO_LANGUAGE=openmp
+export DEVITO_PLATFORM=intel64
+export OMP_NUM_THREADS=40
+
+cd /home/felipe.augusto/FWIDevito
+
+python fwi_circle_versao1.py

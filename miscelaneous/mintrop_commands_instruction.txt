@@ -1,0 +1,23 @@
+0) Entrar no Servidor Mintrop
+
+ssh -X user@200.144.186.101
+
+1) Rodar um Arquivo Dentro do Mintrop
+
+sbatch name_file.slurm
+
+2) Deletar Pasta com Tudo Dentro
+
+rm -rf name_directorie/
+
+3) Ver Lista de Códigos a Serem Rodados
+
+squeue
+
+4) Copiar do Mintrop para Sua Máquina
+
+scp -r user@200.144.186.101:caminho_no_mintrop caminho_seu_pc
+
+5) Copiar da Sua Máquina para o Mintrop
+
+scp -r caminho_seu_pc user@200.144.186.101:caminho_mintrop

@@ -366,23 +366,16 @@ def CircleIsot(setup,abcs,r,vp_circle=3.0,vp_background=2.5):
 # Velocity Model
 #==============================================================================
 def SetVel(model,setup,setting,grid, **kwargs):
-    
-    (x,z) = grid.dimensions
-    
-    if(model['vp']=='Circle'):
-       
+    (x, z)  = grid.dimensions
+    if model['vp']=='Circle':
         vp_circle      = kwargs.get('vp_circle')
         vp_background  = kwargs.get('vp_background')
         r              = kwargs.get('r')
         v0             = CircleIsot(setup,setting["Abcs"],r,vp_circle,vp_background)
-    
-    elif(model['vp']=='Marmousi'):
-        
+    elif model['vp']=='Marmousi':
         vp_file = kwargs.get('vp_file')
         v0      = MarmoVelModel(setup, vp_file, setting["Abcs"])
-    
-    elif(model['vp']=='GM'):
-    
+    elif model['vp']=='GM':
         vp_file = kwargs.get('vp_file')
         v0      = GMVelModel(setup, vp_file, setting["Abcs"])
         
@@ -396,11 +389,14 @@ def SetVel(model,setup,setting,grid, **kwargs):
         vel1.data[0:setup.nptx,setup.nptz-1]      = vel1.data[0:setup.nptx,setup.nptz-2]
 
         return [vel0, vel1], v0
-    
     else:
 
         vel0 = Function(name="vel0",grid=grid,space_order=setup.sou,staggered=NODE,dtype=np.float64)
         vel0.data[:,:] = v0
 
         return vel0, v0
-#==============================================================================
+
+
+
+
+    #==============================================================================

@@ -224,7 +224,7 @@ if (__name__=='__main__'):
         
         objvr[cont,0] = objective
         
-        objvr[cont,1] = la.norm(np.reshape(vres - vel,-1),2)/la.norm(np.reshape(vel,-1),2)
+        objvr[cont,1] = la.norm(np.reshape(vres - vel,-1),1)/la.norm(np.reshape(vel,-1),1)
         
         cont = cont + 1
 

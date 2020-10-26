@@ -72,14 +72,15 @@ class settings:
         "z0": 0.,               # z initial in metters
         "lenpmlx": 1000,        # pml lenght x direction  
         "lenpmlz": 1000,        # pml lenght z direction
-        "nptx": 700,            # number of points in x-axis
+        "nptx": 400,            # number of points in x-axis
         "nptz": 700,            # number of points in z-axis
         "lenx": 7000,           # x-axis lenght (metters)
         "lenz": 7000,           # z-axis lenght (metters)
         "t0": 0.,               # initial time
         "tn": 7000.,            # final time milliseconds
+        "cfl": 0.4,             # cfl parameter
         "f0": 0.01,             # frequency peak KHz
-        "Abcs": 'cpml',         # Abcs methods, options=damping, pml, cpml, or habc-a1
+        "Abcs": 'cpml',         # Abcs methods, options=damping, pml, or habc-a1
         "shotposition_x":32,    # shot position from the x0 (metters)
         "shotposition_z":32,    # shot position from the z0 (metters)
         "recposition_x": 32,    # Receiver position from the x0 (metters)

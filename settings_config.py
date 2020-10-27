@@ -8,7 +8,7 @@ import numpy             as np
 class settings:
 #==============================================================================
     model = {
-        "vp":'Circle'   # Circle, Marmousi or GM     
+        "vp":'Circle'   # Circle, Marmousi, GM or GMnew   
             }
 #==============================================================================
 # Parameters Settings for Homogeneous and Heterogeneous Model
@@ -20,13 +20,13 @@ class settings:
         "lenpmlz": 200,        # pml lenght z direction 
         "nptx": 201,           # number of points in x-axis
         "nptz": 201,           # number of points in z-axis
-        "lenx": 1000,          # x-axis lenght (metters)
-        "lenz": 1000,          # z-axis lenght (metters)
+        "lenx": 2000,          # x-axis lenght (metters)
+        "lenz": 2000,          # z-axis lenght (metters)
         "t0": 0.,              # initial time
         "tn": 1000,            # final time milliseconds
         "cfl": 0.4,            # cfl parameter
         "f0" : 0.01,           # frequency peak kHz
-        "Abcs": 'damping',         # Abcs methods, options=damping, pml, or habc-a1
+        "Abcs": 'damping',     # Abcs methods, options=damping, pml, cpml, habc-a1, Higdon
         "shotposition_x":500,  # shot position from the x0 (metters)
         "shotposition_z":10,   # shot position from the z0 (metters)
         "recposition_x": 20,   # Receiver position from the x0 (metters)
@@ -53,7 +53,7 @@ class settings:
         "tn": 7000.,           # final time milliseconds
         "cfl": 0.4,            # cfl parameter
         "f0": 0.01,            # frequency peak KHz
-        "Abcs": 'pml',         # Abcs methods, options=damping, pml, or habc-a1
+        "Abcs": 'pml',         # Abcs methods, options=damping, pml, cpml, habc-a1, Higdon
         "shotposition_x":7500, # shot position from the x0 (metters)
         "shotposition_z":32,   # shot position from the z0 (metters)
         "recposition_x": 20,   # Receiver position from the x0 (metters)
@@ -72,29 +72,30 @@ class settings:
         "z0": 0.,               # z initial in metters
         "lenpmlx": 1000,        # pml lenght x direction  
         "lenpmlz": 1000,        # pml lenght z direction
-        "nptx": 700,            # number of points in x-axis
-        "nptz": 700,            # number of points in z-axis
+        "nptx": 400,            # number of points in x-axis
+        "nptz": 400,            # number of points in z-axis
         "lenx": 7000,           # x-axis lenght (metters)
         "lenz": 7000,           # z-axis lenght (metters)
         "t0": 0.,               # initial time
         "tn": 7000.,            # final time milliseconds
+        "cfl": 0.4,             # cfl parameter
         "f0": 0.01,             # frequency peak KHz
-        "Abcs": 'cpml',         # Abcs methods, options=damping, pml, cpml, or habc-a1
+        "Abcs": 'cpml',         # Abcs methods, options=damping, pml, cpml, habc-a1, Higdon
         "shotposition_x":32,    # shot position from the x0 (metters)
         "shotposition_z":32,    # shot position from the z0 (metters)
         "recposition_x": 32,    # Receiver position from the x0 (metters)
         "recposition_z": 32,    # Receiver position from the z0 (metters)
         "rec_n": 300,           # Receiver number
         "habcw": 2,             # 1=linear , 2=nonlinear weight (used in habc-a1)
-        "jump": 5,              # Jump to save the wave equation solution to be used in adjoint-based gradient
-        "shots_dist":400,       # distance between the shots in metters
+        "jump": 1,              # Jump to save the wave equation solution to be used in adjoint-based gradient
+        "shots_dist":1000,       # distance between the shots in metters
         "USE_GPU_DASK": False,  # True or False
         "threads_per_worker": 1,
         "memory": 70.,          # Restart DASK cluster when more than X% of memory is used
         "dask": True,           # This variable change if you start the DASK cluster
         "death_timeout": 800,    
         "checkpointing":True,   # True or False
-        "n_checkpointing": 20,  # None or an int value n<timestep
+        "n_checkpointing": None, # None or an int value n<timestep
         }
 #==============================================================================
 
@@ -114,7 +115,7 @@ class settings:
         "tn": 350.,            # final time milliseconds
         "cfl": 0.4,            # cfl parameter
         "f0": 0.01,            # frequency peak KHz
-        "Abcs": 'pml',         # Abcs methods, options=damping, pml, cpml or habc-a1
+        "Abcs": 'pml',         # Abcs methods, options=damping, pml, cpml, habc-a1, Higdon
         "shotposition_x":125,  # shot position from the x0 (metters)
         "shotposition_z":125,  # shot position from the z0 (metters)
         "recposition_x": 32,   # Receiver position from the x0 (metters)
@@ -133,17 +134,17 @@ class settings:
     setting5 = {
         "x0": 0.,               # x initial in metters
         "z0": 0.,               # z initial in metters
-        "lenpmlx": 80,          # pml lenght x direction 
-        "lenpmlz": 80,          # pml lenght z direction 
-        "nptx": 400,            # number of points in x-axis
-        "nptz": 400,            # number of points in z-axis
-        "lenx": 800,            # x-axis lenght (metters)
-        "lenz": 800,            # z-axis lenght (metters)
+        "lenpmlx": 200,          # pml lenght x direction 
+        "lenpmlz": 200,          # pml lenght z direction 
+        "nptx": 1200,            # number of points in x-axis
+        "nptz": 1200,            # number of points in z-axis
+        "lenx": 2000,            # x-axis lenght (metters)
+        "lenz": 2000,            # z-axis lenght (metters)
         "t0": 0.,               # initial time
-        "tn": 1000.,             # final time milliseconds
+        "tn": 2000.,             # final time milliseconds
         "cfl": 0.4,             # cfl parameter
         "f0": 0.005,            # frequency peak KHz
-        "Abcs": 'damping',         # Abcs methods, options=damping, pml, cpml or habc-a1
+        "Abcs": 'cpml',         # Abcs methods, options=damping, pml, cpml, habc-a1, Higdon
         "shotposition_x":125,   # shot position from the x0 (metters)
         "shotposition_z":1.25,  # shot position from the z0 (metters)
         "recposition_x": 2.25,  # Receiver position from the z0 (metters)
@@ -151,7 +152,7 @@ class settings:
         "rec_n": 200,           # Receiver number
         "habcw": 2,             # 1=linear , 2=nonlinear weight (used in habc-a1)
         "jump": 1,              # Jump to save the wave equation solution to be used in adjoint-based gradient
-        "shots_dist": 80,       # distance between the shots in metters
+        "shots_dist": 500,       # distance between the shots in metters
         "snapshots": 10,        # wave equation solution snapshots to be saved  
         "USE_GPU_DASK": False,  # True or False
         "threads_per_worker": 1,
@@ -159,8 +160,9 @@ class settings:
         "dask": True,           # This variable change if you start the DASK cluster
         "death_timeout": 800,    
         "checkpointing":True,   # True or False
-        "n_checkpointing": 20,  # None or an int value n<timestep
+        "n_checkpointing": 400, # None or an int value n<timestep
         }
+       
 #==============================================================================
 
 #==============================================================================
@@ -171,14 +173,14 @@ class settings:
         "z0": 0.,               # z initial in metters
         "lenpmlx": 100,         # pml lenght x direction
         "lenpmlz": 100,         # pml lenght z direction
-        "nptx": 200,            # number of points in x-axis
-        "nptz": 200,            # number of points in z-axis
+        "nptx": 300,            # number of points in x-axis
+        "nptz": 300,            # number of points in z-axis
         "lenx": 500,            # x-axis lenght (metters)
         "lenz": 500,            # z-axis lenght (metters)
         "t0": 0.,               # initial time
         "tn": 500,              # final time milliseconds
         "f0" : 0.005,           # frequency peak kHz
-        "Abcs": 'damping',      # Abcs methods, options=damping, pml, cpml or habc-a1
+        "Abcs": 'Higdon',         # Abcs methods, options=damping, pml, cpml, habc-a1, Higdon
         "shotposition_z":30,    # shot position from the z0 (metters)
         "recposition_z": 20,    # Receiver position from the z0 (metters)
         "rec_n": 200,           # Receiver number
@@ -188,9 +190,46 @@ class settings:
         "USE_GPU_DASK": False,  # True or False
         "threads_per_worker": 1,
         "memory": 70.,          # Restart DASK cluster when more than X% of memory is used
-        "dask": True,           # This variable change if you start the DASK cluster
+        "dask": False,           # This variable change if you start the DASK cluster
         "death_timeout": 800,    
-        "checkpointing":True,   # True or False
-        "n_checkpointing": 20,  # None or an int value n<timestep
+        "checkpointing":False,   # True or False
+        "n_checkpointing": 20, # None or an int value n<timestep
         }
 #==============================================================================
+#==============================================================================
+    setting7 = {
+        "x0": 1000.,               # x initial in metters
+        "z0": 0.,               # z initial in metters
+        "lenpmlx": 1000,        # pml lenght x direction 
+        "lenpmlz": 1000,        # pml lenght z direction 
+        "nptx": 758,            # number of points in x-axis
+        "nptz": 400,            # number of points in z-axis
+        "lenx": 7462.5,         # x-axis lenght (metters)
+        "lenz": 7992.0,         # z-axis lenght (metters)
+        "t0": 0.,               # initial time
+        "tn": 8000.,            # final time milliseconds
+        "cfl": 0.4,             # cfl parameter
+        "f0": 0.005,            # frequency peak KHz
+        "Abcs": 'cpml',         # Abcs methods, options=damping, pml, cpml, habc-a1, Higdon
+        "shotposition_x":125,   # shot position from the x0 (metters)
+        "shotposition_z":7.5,   # shot position from the z0 (metters)
+        "recposition_x": 2.25,  # Receiver position from the z0 (metters)
+        "recposition_z": 12,    # Receiver position from the z0 (metters)
+        "rec_n": 300,           # Receiver number
+        "habcw": 2,             # 1=linear , 2=nonlinear weight (used in habc-a1)
+        "jump": 1,              # Jump to save the wave equation solution to be used in adjoint-based gradient
+        "shots_dist": 500,      # distance between the shots in metters
+        "snapshots": 10,        # wave equation solution snapshots to be saved  
+        "USE_GPU_DASK": False,  # True or False
+        "threads_per_worker": 1,
+        "memory": 70.,          # Restart DASK cluster when more than X% of memory is used
+        "dask": False,          # This variable change if you start the DASK cluster
+        "death_timeout": 800,    
+        "checkpointing":False,  # True or False
+        "n_checkpointing": 400, # None or an int value n<timestep
+        }
+       
+#==============================================================================
+
+ 
+    

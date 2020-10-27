@@ -228,8 +228,8 @@ if (__name__=='__main__'):
         
         cont = cont + 1
 
-        np.save('data_save/objvr',objvr)
-        np.save('data_save/vres',vres)
+        # np.save('data_save/objvr',objvr)
+        # np.save('data_save/vres',vres)
         print('The objective value in the ', cont, ' iteration is: ',np.round(objective,2))
     
         return objective, np.reshape(grad_grop,-1)
@@ -247,19 +247,10 @@ if (__name__=='__main__'):
         sigma  = 20 
         vini   = gaussian_filter(v0,sigma=sigma)
 
-    if(setting["Abcs"]=='pml'):
-        
-        m0     = np.reshape(vini[0],-1)
-        vmax   = np.amax(v0[0])
-        vmin   = np.amin(v0[0])
-        vel    = v0[0]
-        
-    else:
-        
-        m0     = np.reshape(vini,-1)
-        vmax   = np.amax(v0)
-        vmin   = np.amin(v0)
-        vel    = v0
+    m0     = np.reshape(vini,-1)
+    vmax   = np.amax(v0)
+    vmin   = np.amin(v0)
+    vel    = v0
     #==============================================================================
 
     #==============================================================================

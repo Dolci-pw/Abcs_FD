@@ -85,7 +85,79 @@ def GMVelModel(setup,vp,abc):
     
         return v0
 #==============================================================================   
-       
+
+#==============================================================================
+def GMVelModelnew(setup,vp,abc):
+
+    nptx  = setup.nptx
+    nptz  = setup.nptz
+    x0    = setup.x0
+    x1    = setup.x1
+    z0    = setup.z0
+    z1    = setup.z1
+    
+    nptxvel = 758
+    nptzvel = 282
+    x0vel   = 0.        
+    x1vel   = 9462.5    
+    z0vel   = 0.        
+    z1vel   = 8992
+
+    Xvel    = np.linspace(x0vel,x1vel,nptxvel)
+    Zvel    = np.linspace(z0vel,z1vel,nptzvel)
+    
+
+    X0 = np.linspace(x0,x1,nptx)  
+    Z0 = np.linspace(z0,z1,nptz)
+   
+    C0x = np.zeros((nptx,nptzvel))
+    
+    for j in range(nptzvel):
+        x  = Xvel
+        z  = vp[0:nptxvel,j]
+        cs = interp1d(x,z,kind='linear')
+        xs = X0
+        C0x[0:nptx,j] = cs(xs)
+        
+    v0 = np.zeros((nptx,nptz))  
+    
+    for i in range(nptx):
+        x  = Zvel
+        z  = C0x[i,0:nptzvel]
+        cs = interp1d(x,z,kind='linear')
+        xs = Z0
+        v0[i,0:nptz] = cs(xs)
+
+    if(abc=='pml'):
+      
+        X1 = np.linspace((x0+0.5*setup.hx),(x1-0.5*setup.hx),nptx-1)
+        Z1 = np.linspace((z0+0.5*setup.hz),(z1-0.5*setup.hz),nptz-1)
+        
+        C11x = np.zeros((nptx-1,nptzvel))
+        
+        v1 = np.zeros((nptx-1,nptz-1))
+        
+        for j in range(nptzvel):
+            x  = Xvel
+            z  = vp[0:nptxvel,j]
+            cs = interp1d(x,z,kind='linear')
+            xs = X1
+            C11x[0:nptx-1,j] = cs(xs)
+            
+        for i in range(nptx-1):
+            x  = Zvel
+            z  = C11x[i,0:nptzvel]
+            cs = interp1d(x,z,kind='linear')
+            xs = Z1
+            v1[i,0:nptz-1] = cs(xs)
+
+        return v0, v1
+    
+    else:
+    
+        return v0
+#==============================================================================   
+          
 #==============================================================================
 # Homogenous Model - Daiane
 #==============================================================================      
@@ -244,12 +316,12 @@ def MarmoVelModel(setup,vp,abc):
     z0    = setup.z0
     z1    = setup.z1
 
-    nptxvel =  600
-    nptzvel =  600
-    x0vel   = -250.        
-    x1vel   =  500.     
+    nptxvel =  2000
+    nptzvel =  2000
+    x0vel   =  -250.        
+    x1vel   =  2200.     
     z0vel   = -250.        
-    z1vel   =  500.
+    z1vel   = 2200.
 
     Xvel    = np.linspace(x0vel,x1vel,nptxvel)
     Zvel    = np.linspace(z0vel,z1vel,nptzvel)
@@ -325,6 +397,8 @@ def CircleIsot(setup,abcs,r,vp_circle=3.0,vp_background=2.5):
     z1pml = setup.z1pml
     hx    = setup.hx
     hz    = setup.hz
+    npmlx = setup.npmlx
+    npmlz = setup.npmlz
     
     xc    = (x1pml-x0pml)/2    
     zc    = (z1pml-z0pml)/2 
@@ -340,7 +414,7 @@ def CircleIsot(setup,abcs,r,vp_circle=3.0,vp_background=2.5):
                 v0[i,j] = vp_circle
             else:        
                 v0[i,j] = vp_background
-   
+    
     if(abcs=='pml'):
        
         v1  = np.zeros((nptx-1,nptz-1))
@@ -366,26 +440,22 @@ def CircleIsot(setup,abcs,r,vp_circle=3.0,vp_background=2.5):
 # Velocity Model
 #==============================================================================
 def SetVel(model,setup,setting,grid, **kwargs):
-    
-    (x,z) = grid.dimensions
-    
-    if(model['vp']=='Circle'):
-       
+    (x, z)  = grid.dimensions
+    if model['vp']=='Circle':
         vp_circle      = kwargs.get('vp_circle')
         vp_background  = kwargs.get('vp_background')
         r              = kwargs.get('r')
         v0             = CircleIsot(setup,setting["Abcs"],r,vp_circle,vp_background)
-    
-    elif(model['vp']=='Marmousi'):
-        
+    elif model['vp']=='Marmousi':
         vp_file = kwargs.get('vp_file')
         v0      = MarmoVelModel(setup, vp_file, setting["Abcs"])
-    
-    elif(model['vp']=='GM'):
-    
+    elif model['vp']=='GM':
         vp_file = kwargs.get('vp_file')
         v0      = GMVelModel(setup, vp_file, setting["Abcs"])
-        
+    elif model['vp']=='GMnew':  
+        vp_file = kwargs.get('vp_file')
+        v0      = GMVelModelnew(setup, vp_file, setting["Abcs"])
+
     if(setting["Abcs"]=='pml'):
         
         vel0 = Function(name="vel0",grid=grid,space_order=setup.sou,staggered=NODE,dtype=np.float64)
@@ -395,12 +465,15 @@ def SetVel(model,setup,setting,grid, **kwargs):
         vel1.data[setup.nptx-1,0:setup.nptz-1]    = vel1.data[setup.nptx-2,0:setup.nptz-1]
         vel1.data[0:setup.nptx,setup.nptz-1]      = vel1.data[0:setup.nptx,setup.nptz-2]
 
-        return [vel0, vel1], v0
-    
+        return [vel0, vel1], v0[0]
     else:
-
+        
         vel0 = Function(name="vel0",grid=grid,space_order=setup.sou,staggered=NODE,dtype=np.float64)
         vel0.data[:,:] = v0
 
         return vel0, v0
-#==============================================================================
+
+
+
+
+    #==============================================================================

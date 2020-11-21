@@ -4,7 +4,7 @@
 import numpy                   as np
 import math                    as mt
 from   scipy.interpolate       import interp1d
-# from   distributed             import Client, wait
+from   distributed             import Client, wait
 #==============================================================================
 
 #==============================================================================
@@ -44,22 +44,22 @@ class ProblemSetup:
         self.sou        = 4                                            # Space Order Displacement    
         self.tn         = self.set["tn"]
         self.t0         = self.set["t0"]  
-        self.cfl        =  0.4                                         # cfl parameter 
+        self.cfl        = 0.4 
         self.f0         = self.set["f0"]  
         self.Abcs       = self.set["Abcs"]  
         self.shotposition_z = self.set["shotposition_z"]
         self.recposition_z  = self.set["recposition_z"] 
         self.rec_n = self.set["rec_n"] 
         self.habcw = self.set["habcw"] 
+        
 #==============================================================================
-
-#==============================================================================  
+ #==============================================================================  
     def TimeDiscret(self, v0):
 
         cfl = self.cfl
 
         tau   = self.tn-self.t0              
-        vmax  = np.amax(v0[0]) 
+        vmax  = np.amax(v0) 
         dtmax = np.float64((min(self.hx,self.hz)*cfl)/(vmax))
         ntmax = int((tau)/dtmax)+1
         dt0   = np.float64((tau)/ntmax) 
@@ -339,58 +339,37 @@ def gerav1m0(setup,v0):
     return v1      
 #==============================================================================
 
-#==============================================================================
+# ==============================================================================
 # Start and setup DASK cluster
-#==============================================================================
+# ==============================================================================
+def dask_start(threads_per_worker, n_workers, death_timeout, USE_GPU_AWARE_DASK=False):
+    if USE_GPU_AWARE_DASK:
+        from dask_cuda import LocalCUDACluster
+        cluster = LocalCUDACluster(
+            threads_per_worker=threads_per_worker, death_timeout=death_timeout)
+    else:
+        from distributed import LocalCluster
+        
+        cluster = LocalCluster(n_workers=n_workers,
+                               death_timeout=death_timeout)
 
-#==============================================================================
-# def dask_start(threads_per_worker, n_workers, death_timeout, USE_GPU_AWARE_DASK=False):
-#    
-#     if(USE_GPU_AWARE_DASK):
-#    
-#         from dask_cuda import LocalCUDACluster
-#
-#         cluster = LocalCUDACluster(threads_per_worker=threads_per_worker, death_timeout=death_timeout)
-#
-#     else:
-#
-#         from distributed import LocalCluster
-#        
-#         cluster = LocalCluster(n_workers=n_workers,death_timeout=death_timeout)
-#
-#     client = Client(cluster)
-#
-#     return client, cluster
-#==============================================================================
+    client = Client(cluster)
 
-#==============================================================================
-# class fg_pair:
-#==============================================================================
+    return client, cluster
 
-#==============================================================================
-#     def __init__(self, f, g):
-#
-#         self.f = f
-#         self.g = g
-#==============================================================================
-
-#==============================================================================    
-#     def __add__(self, other):
-#    
-#         f = self.f + other.f
-#         g = self.g + other.g
-#       
-#         return fg_pair(f, g)
-#==============================================================================
-
-#==============================================================================    
-#     def __radd__(self, other):
-#
-#         if(other== 0):
-#
-#             return self
-#
-#         else:
-#    
-#             return self.__add__(other)
-#==============================================================================
+class fg_pair:
+    def __init__(self, f, g):
+        self.f = f
+        self.g = g
+    
+    def __add__(self, other):
+        f = self.f + other.f
+        g = self.g + other.g
+        
+        return fg_pair(f, g)
+    
+    def __radd__(self, other):
+        if other == 0:
+            return self
+        else:
+            return self.__add__(other)

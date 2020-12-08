@@ -12,7 +12,7 @@ from matplotlib               import ticker
 #==============================================================================
 
 #==============================================================================
-# Plot 1 - Displacement
+# Plot 1 - Forward Displacement
 #==============================================================================
 def graph2d(U,setup):
     
@@ -39,7 +39,7 @@ def graph2d(U,setup):
    
     plot.gca().yaxis.set_major_formatter(mticker.FormatStrFormatter('%.2f km'))
     
-    plot.title('Displacement Profile')
+    plot.title('Forward Displacement Profile')
     
     plot.grid()
     
@@ -63,7 +63,68 @@ def graph2d(U,setup):
     
     plot.draw()
             
-    plot.savefig('figures/displacement_map.eps',dpi=100,format='eps')
+    plot.savefig('figures/forward_displacement_map.eps',dpi=100,format='eps')
+    
+    #plot.show()
+    
+    plot.close()
+    
+    return
+#==============================================================================
+
+#==============================================================================
+# Plot 10 - Adjoint Displacement
+#==============================================================================
+def graph2dadj(U,setup):
+    
+    x0pml = setup.x0pml
+    x1pml = setup.x1pml
+    z0pml = setup.z0
+    z1pml = setup.z1pml
+    npmlx = setup.npmlx
+    npmlz = setup.npmlz
+    
+    fscale = 10**(-3) 
+    
+    scale  = np.amax(U[npmlx:-npmlx,0:-npmlz])/10.
+    
+    plot.figure(figsize = (14,4))
+
+    extent = [fscale*x0pml,fscale*x1pml,fscale*z1pml,fscale*z0pml]
+    
+    fig = plot.imshow(np.transpose(U[npmlx:-npmlx,0:-npmlz]),vmin=-scale, vmax=scale, cmap="seismic", aspect=1, extent=extent)
+    
+    plot.axis('equal')
+    
+    plot.gca().xaxis.set_major_formatter(mticker.FormatStrFormatter('%.2f km'))
+   
+    plot.gca().yaxis.set_major_formatter(mticker.FormatStrFormatter('%.2f km'))
+    
+    plot.title('Adjoint Displacement Profile')
+    
+    plot.grid()
+    
+    ax = plot.gca()
+   
+    ax.xaxis.set_major_locator(plot.MaxNLocator(4))
+    
+    ax.yaxis.set_major_locator(plot.MaxNLocator(4))
+    
+    divider = make_axes_locatable(ax)
+    
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    
+    tick_locator = ticker.MaxNLocator(nbins=5)
+    
+    cbar = plot.colorbar(fig, cax=cax, format='%.1e')
+    
+    cbar.locator = tick_locator
+    
+    cbar.update_ticks()
+    
+    plot.draw()
+            
+    plot.savefig('figures/adjoint_displacement_map.eps',dpi=100,format='eps')
     
     #plot.show()
     
@@ -199,10 +260,70 @@ def plotgrad(grad, setup):
 #==============================================================================
 
 #==============================================================================
+# Plot 40 - Velocity Full Model
+#==============================================================================
+def graph2dvelfull(vel,setup):
+     
+    x0 = setup.x0
+    x1 = setup.x1
+    z0 = setup.z0
+    z1 = setup.z1
+    
+    plot.figure(figsize = (14,4))
+    
+    fscale =  10**(-3)
+    
+    vminv = np.amin(vel)
+
+    vmaxv = np.amax(vel)
+    
+    scale  = np.amax(vel)
+
+    extent = [fscale*x0,fscale*x1,fscale*z1,fscale*z0]
+
+    fig = plot.imshow(np.transpose(vel), vmin=vminv,vmax=vmaxv, cmap=cm.jet, extent=extent)
+        
+    plot.gca().xaxis.set_major_formatter(mticker.FormatStrFormatter('%.2f km'))
+
+    plot.gca().yaxis.set_major_formatter(mticker.FormatStrFormatter('%.2f km'))
+
+    plot.title('Full Velocity Profile')
+
+    plot.grid()
+
+    ax = plot.gca()
+
+    ax.xaxis.set_major_locator(plot.MaxNLocator(4))
+    
+    ax.yaxis.set_major_locator(plot.MaxNLocator(4))
+   
+    divider = make_axes_locatable(ax)
+
+    cax = divider.append_axes("right", size="4%", pad=0.05)
+
+    tick_locator = ticker.MaxNLocator(nbins=5)
+
+    cbar = plot.colorbar(fig, cax=cax, format='%.2e')
+
+    cbar.locator = tick_locator
+
+    cbar.update_ticks()
+
+    cbar.set_label('Velocity [km/s]')
+
+    plot.savefig('figures/full_vel_map.eps',dpi=100,format='eps')
+
+    #plot.show()
+    
+    plot.close()
+
+    return
+#==============================================================================
+
+#==============================================================================
 # Plot 4 - Velocity
 #==============================================================================
 def graph2dvel(vel,setup):
-    
      
     x0pml = setup.x0pml
     x1pml = setup.x1pml
@@ -229,7 +350,7 @@ def graph2dvel(vel,setup):
 
     plot.gca().yaxis.set_major_formatter(mticker.FormatStrFormatter('%.2f km'))
 
-    plot.title('Velocity Profile')
+    plot.title('Reduced Velocity Profile')
 
     plot.grid()
 
@@ -253,7 +374,7 @@ def graph2dvel(vel,setup):
 
     cbar.set_label('Velocity [km/s]')
 
-    plot.savefig('figures/vel_map.eps',dpi=100,format='eps')
+    plot.savefig('figures/reduced_vel_map.eps',dpi=100,format='eps')
 
     #plot.show()
     

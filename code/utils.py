@@ -51,9 +51,9 @@ class ProblemSetup:
         self.recposition_z  = self.set["recposition_z"] 
         self.rec_n = self.set["rec_n"] 
         self.habcw = self.set["habcw"] 
-        
 #==============================================================================
- #==============================================================================  
+
+#==============================================================================  
     def TimeDiscret(self, v0):
 
         cfl = self.cfl
@@ -339,37 +339,97 @@ def gerav1m0(setup,v0):
     return v1      
 #==============================================================================
 
-# ==============================================================================
+#==============================================================================
+# Data Save
+#==============================================================================        
+def datasave(uforward,uadjoint,setup,i):
+      
+    nptx  = setup.nptx
+    nptz  = setup.nptz
+    x0    = setup.x0
+    x1    = setup.x1
+    z0    = setup.z0
+    z1    = setup.z1
+    npmlx = setup.npmlx
+    npmlz = setup.npmlz
+    
+    if(i==0):
+         
+        np.save("data_save/uforward_devito",uforward[npmlx:-npmlx,0:-npmlz])
+        np.save("data_save/uadjoint_devito",uadjoint[npmlx:-npmlx,0:-npmlz])
+
+    if(i==1):
+        
+        X0 = np.linspace(x0,x1,nptx)
+        Z0 = np.linspace(z0,z1,nptz)
+        xi = 0.0
+        xf = 0.0
+        zi = 0.0
+        zf = 0.0
+        
+        for j in range(0,nptx):
+            if(X0[j]==4000.):  xi = j
+            if(X0[j]==13000.): xf = j
+        
+            
+        for j in range(0,nptz):
+            if(Z0[j]==0.):    zi = j
+            if(Z0[j]==3200.): zf = j
+        
+        np.save("data_save/uforward_reference_devito",uforward[xi:(xf+1),zi:(zf+1)])
+        np.save("data_save/uadjoint_reference_devito",uadjoint[xi:(xf+1),zi:(zf+1)])
+#==============================================================================
+
+#==============================================================================
 # Start and setup DASK cluster
-# ==============================================================================
+#==============================================================================
+
+#==============================================================================
 def dask_start(threads_per_worker, n_workers, death_timeout, USE_GPU_AWARE_DASK=False):
-    if USE_GPU_AWARE_DASK:
+    
+    if(USE_GPU_AWARE_DASK):
+    
         from dask_cuda import LocalCUDACluster
-        cluster = LocalCUDACluster(
-            threads_per_worker=threads_per_worker, death_timeout=death_timeout)
+        
+        cluster = LocalCUDACluster(threads_per_worker=threads_per_worker, death_timeout=death_timeout)
+    
     else:
+        
         from distributed import LocalCluster
         
-        cluster = LocalCluster(n_workers=n_workers,
-                               death_timeout=death_timeout)
+        cluster = LocalCluster(n_workers=n_workers,death_timeout=death_timeout)
 
     client = Client(cluster)
 
     return client, cluster
+#==============================================================================
 
+#==============================================================================
 class fg_pair:
+#==============================================================================
+
+#==============================================================================    
     def __init__(self, f, g):
         self.f = f
         self.g = g
-    
+#==============================================================================
+
+#==============================================================================    
     def __add__(self, other):
         f = self.f + other.f
         g = self.g + other.g
         
         return fg_pair(f, g)
-    
+#==============================================================================
+
+#==============================================================================    
     def __radd__(self, other):
-        if other == 0:
+
+        if(other==0):
+            
             return self
+        
         else:
+        
             return self.__add__(other)
+#==============================================================================

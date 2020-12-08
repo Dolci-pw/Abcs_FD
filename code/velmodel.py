@@ -451,6 +451,9 @@ def SetVel(model,setup,setting,grid, **kwargs):
     elif model['vp']=='Marmousi':
         vp_file = kwargs.get('vp_file')
         v0      = MarmoVelModel(setup, vp_file, setting["Abcs"])
+    elif model['vp']=='Marmousi_Reference':
+        vp_file = kwargs.get('vp_file')
+        v0      = MarmoVelModel(setup, vp_file, setting["Abcs"])    
     elif model['vp']=='GM':
         vp_file = kwargs.get('vp_file')
         v0      = GMVelModel(setup, vp_file, setting["Abcs"])
@@ -474,8 +477,4 @@ def SetVel(model,setup,setting,grid, **kwargs):
         vel0.data[:,:] = v0
 
         return vel0, v0
-
-
-
-
     #==============================================================================

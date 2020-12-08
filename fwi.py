@@ -31,7 +31,7 @@ if (__name__=='__main__'):
     sys.path.insert(0, './code')
     from   timeit import default_timer as timer
     import solver, domain2D, utils, velmodel
-    from   plots  import plotgrad, graph2drec, graph2d, graph2dvel, graph2dvel2, graphobjv, graph2drecres
+    from   plots  import plotgrad, graph2drec, graph2d, graph2dvel, graph2dvel2, graphobjv, graph2drecres, graph2dvelfull, graph2dadj
     #==============================================================================
 
     #==============================================================================
@@ -54,6 +54,10 @@ if (__name__=='__main__'):
     elif(model['vp']=='Marmousi'):
     
         setting = settings_config.settings.setting5
+        
+    elif(model['vp']=='Marmousi_Reference'):
+    
+        setting = settings_config.settings.setting51
     
     elif(model['vp']=='GM'):
     
@@ -78,7 +82,14 @@ if (__name__=='__main__'):
     
     elif(model['vp']=='Marmousi'):
     
-        with segyio.open('VelModelFiles/Mar2_Vp_1.25m.segy') as segyfile:
+        with segyio.open('VelModelFiles/marmousi_perfil1.segy') as segyfile:
+            vp_file = segyio.tools.cube(segyfile)[0,:,:]
+        
+        vp, v0 = velmodel.SetVel(model,setup, setting,grid,vp_file=vp_file)
+        
+    elif(model['vp']=='Marmousi_Reference'):
+    
+        with segyio.open('VelModelFiles/marmousi_perfil1.segy') as segyfile:
             vp_file = segyio.tools.cube(segyfile)[0,:,:]
         
         vp, v0 = velmodel.SetVel(model,setup, setting,grid,vp_file=vp_file)
@@ -131,9 +142,9 @@ if (__name__=='__main__'):
     # Solve the forward eq. using the true model
     rec_true.append(fwisolver.forward_true(sn))
     
-
     fwisolver.rec_true = rec_true
     #==============================================================================
+    
     #==============================================================================
     # FWI Functions
     #==============================================================================    
@@ -145,7 +156,6 @@ if (__name__=='__main__'):
         work  = []
         grad1 = Function(name="grad1", grid=grid)
         
-    
         clear_cache()
 
         #update vp_guess
@@ -153,7 +163,6 @@ if (__name__=='__main__'):
         vp_guess = fwisolver.vp_g
         
         usave, vsave  = fwisolver.apply(sn)
-
     
         # np.save('data_save/objvr',objvr)
         # np.save('data_save/vres',vres)
@@ -168,7 +177,7 @@ if (__name__=='__main__'):
         
         _, vini = velmodel.SetVel(model,setup, setting,grid,vp_circle=2.7, vp_background=2.5,r=75)
    
-    elif(model['vp']=='Marmousi' or model['vp']=='GM'):
+    elif(model['vp']=='Marmousi' or model['vp']=='GM' or model['vp']=='Marmousi_Reference'):
     
         sigma  = 15 
         vini   = gaussian_filter(v0,sigma=sigma)
@@ -179,13 +188,31 @@ if (__name__=='__main__'):
     vel    = v0
     #==============================================================================
 
+    #==============================================================================
+    # Save Options
+    #==============================================================================
     usave, vsave = shots(m0)
-
     #usave = forward solution
     #vsave = adjoint solution
     #==============================================================================
+
+    #==============================================================================
     # Plot Results
     #==============================================================================    
+    V1 = graph2dvel(vel,setup)
+    V2 = graph2dvelfull(vel,setup)
     P3 = graph2d(usave[9],setup)
-    P4 = graph2d(vsave[1],setup)
+    P4 = graph2dadj(vsave[1],setup)
+    #==============================================================================
+
+    #==============================================================================
+    # Save Results
+    #==============================================================================
+    if(model['vp']=='Marmousi_Reference'):
+
+        S1 = utils.datasave(usave[9],vsave[1],setup,1)
+        
+    else:
+        
+        S1 = utils.datasave(usave[9],vsave[1],setup,0)
     #==============================================================================

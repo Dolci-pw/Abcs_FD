@@ -8,7 +8,7 @@ import numpy             as np
 class settings:
 #==============================================================================
     model = {
-        "vp":'Marmousi'   # Circle, Marmousi, GM or GMnew   
+        "vp":'Marmousi_Reference'   # Circle, Marmousi, GM or GMnew   
             }
 #==============================================================================
 # Parameters Settings for Homogeneous and Heterogeneous Model
@@ -88,13 +88,13 @@ class settings:
         "rec_n": 300,           # Receiver number
         "habcw": 2,             # 1=linear , 2=nonlinear weight (used in habc-a1)
         "jump": 1,              # Jump to save the wave equation solution to be used in adjoint-based gradient
-        "shots_dist":1000,       # distance between the shots in metters
+        "shots_dist":1000,      # distance between the shots in metters
         "USE_GPU_DASK": False,  # True or False
         "threads_per_worker": 1,
         "memory": 70.,          # Restart DASK cluster when more than X% of memory is used
         "dask": True,           # This variable change if you start the DASK cluster
         "death_timeout": 800,    
-        "checkpointing":True,   # True or False
+        "checkpointing":True,    # True or False
         "n_checkpointing": None, # None or an int value n<timestep
         }
 #==============================================================================
@@ -132,18 +132,18 @@ class settings:
 # Parameters Settings for Marmousi with FWI
 #==============================================================================
     setting5 = {
-        "x0": 4000.,               # x initial in metters
+        "x0": 4000.,            # x initial in metters
         "z0": 0.,               # z initial in metters
-        "lenpmlx": 200,          # pml lenght x direction 
-        "lenpmlz": 200,          # pml lenght z direction 
+        "lenpmlx": 200,         # pml lenght x direction 
+        "lenpmlz": 200,         # pml lenght z direction 
         "nptx": 901,            # number of points in x-axis
         "nptz": 321,            # number of points in z-axis
-        "lenx": 9000,            # x-axis lenght (metters)
-        "lenz": 3200,            # z-axis lenght (metters)
+        "lenx": 9000,           # x-axis lenght (metters)
+        "lenz": 3200,           # z-axis lenght (metters)
         "t0": 0.,               # initial time
-        "tn": 3200.,             # final time milliseconds
+        "tn": 3200.,            # final time milliseconds
         "cfl": 0.4,             # cfl parameter
-        "f0": 0.02,            # frequency peak KHz
+        "f0": 0.02,             # frequency peak KHz
         "Abcs": 'cpml',         # Abcs methods, options=damping, pml, cpml, habc-a1, Higdon
         "shotposition_x":125,   # shot position from the x0 (metters)
         "shotposition_z":1.25,  # shot position from the z0 (metters)
@@ -156,12 +156,46 @@ class settings:
         "USE_GPU_DASK": False,  # True or False
         "threads_per_worker": 1,
         "memory": 70.,          # Restart DASK cluster when more than X% of memory is used
-        "dask": False,           # This variable change if you start the DASK cluster
+        "dask": False,          # This variable change if you start the DASK cluster
         "death_timeout": 800,    
         "checkpointing":False,   # True or False
-        "n_checkpointing": 400, # None or an int value n<timestep
+        "n_checkpointing": 400,  # None or an int value n<timestep
         }
-       
+#==============================================================================
+
+#==============================================================================
+# Parameters Settings for Marmousi with FWI - Reference for Setting5
+#==============================================================================
+    setting51 = {
+        "x0": 1000.,            # x initial in metters
+        "z0": 0.,               # z initial in metters
+        "lenpmlx": 3000,        # pml lenght x direction 
+        "lenpmlz": 1240,        # pml lenght z direction 
+        "nptx": 1501,           # number of points in x-axis
+        "nptz": 621,            # number of points in z-axis
+        "lenx": 15000,          # x-axis lenght (metters)
+        "lenz": 6200,           # z-axis lenght (metters)
+        "t0": 0.,               # initial time
+        "tn": 3200.,            # final time milliseconds
+        "cfl": 0.4,             # cfl parameter
+        "f0": 0.02,             # frequency peak KHz
+        "Abcs": 'pml',          # Abcs methods, options=damping, pml, cpml, habc-a1, Higdon
+        "shotposition_x":125,   # shot position from the x0 (metters)
+        "shotposition_z":1.25,  # shot position from the z0 (metters)
+        "recposition_x": 2.25,  # Receiver position from the z0 (metters)
+        "recposition_z": 2.25,  # Receiver position from the z0 (metters)
+        "rec_n": 541,           # Receiver number
+        "habcw": 2,             # 1=linear , 2=nonlinear weight (used in habc-a1)
+        "position_src": 4500,   # source position on the physical domain
+        "snapshots": 10,        # wave equation solution snapshots to be saved  
+        "USE_GPU_DASK": False,  # True or False
+        "threads_per_worker": 1,
+        "memory": 70.,          # Restart DASK cluster when more than X% of memory is used
+        "dask": False,          # This variable change if you start the DASK cluster
+        "death_timeout": 800,    
+        "checkpointing":False,   # True or False
+        "n_checkpointing": 400,  # None or an int value n<timestep
+        }
 #==============================================================================
 
 #==============================================================================
@@ -179,7 +213,7 @@ class settings:
         "t0": 0.,               # initial time
         "tn": 500,              # final time milliseconds
         "f0" : 0.005,           # frequency peak kHz
-        "Abcs": 'Higdon',         # Abcs methods, options=damping, pml, cpml, habc-a1, Higdon
+        "Abcs": 'Higdon',       # Abcs methods, options=damping, pml, cpml, habc-a1, Higdon
         "shotposition_z":30,    # shot position from the z0 (metters)
         "recposition_z": 20,    # Receiver position from the z0 (metters)
         "rec_n": 200,           # Receiver number
@@ -189,15 +223,18 @@ class settings:
         "USE_GPU_DASK": False,  # True or False
         "threads_per_worker": 1,
         "memory": 70.,          # Restart DASK cluster when more than X% of memory is used
-        "dask": False,           # This variable change if you start the DASK cluster
+        "dask": False,          # This variable change if you start the DASK cluster
         "death_timeout": 800,    
         "checkpointing":False,   # True or False
-        "n_checkpointing": 20, # None or an int value n<timestep
+        "n_checkpointing": 20,   # None or an int value n<timestep
         }
 #==============================================================================
+
+#==============================================================================
+# Parameters Settings for FWI Test
 #==============================================================================
     setting7 = {
-        "x0": 1000.,               # x initial in metters
+        "x0": 1000.,            # x initial in metters
         "z0": 0.,               # z initial in metters
         "lenpmlx": 1000,        # pml lenght x direction 
         "lenpmlz": 1000,        # pml lenght z direction 
@@ -226,9 +263,5 @@ class settings:
         "death_timeout": 800,    
         "checkpointing":False,  # True or False
         "n_checkpointing": 400, # None or an int value n<timestep
-        }
-       
+        }   
 #==============================================================================
-
- 
-    

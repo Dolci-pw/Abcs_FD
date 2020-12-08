@@ -79,7 +79,7 @@ if (__name__=='__main__'):
     elif(model['vp']=='Marmousi'):
     
         with segyio.open('VelModelFiles/Mar2_Vp_1.25m.segy') as segyfile:
-            vp_file = segyio.tools.cube(segyfile)[0,6200:6800,100:700]
+            vp_file = segyio.tools.cube(segyfile)[0,:,:]
         
         vp, v0 = velmodel.SetVel(model,setup, setting,grid,vp_file=vp_file)
     
@@ -95,13 +95,6 @@ if (__name__=='__main__'):
     set_time = setup.TimeDiscret(v0)
     dt0, nt, time_range = set_time   #time discretization
     #==============================================================================    
-
-    #==============================================================================
-    # Shot Properties
-    #==============================================================================
-    sd     = setting["shots_dist"]
-    nshots = int((setting["lenx"]-sd)/sd) 
-    #==============================================================================
 
     #==============================================================================
     # Start DASK
@@ -133,38 +126,14 @@ if (__name__=='__main__'):
     rec_true  = []
     work_true = []
     
-    for sn in range(0, nshots): 
+    sn = 0
     
-        if(setting["dask"]):
-            
-            work_true.append(client.submit(fwisolver.forward_true,sn))
-        
-        else:
-        
-            rec_true.append(fwisolver.forward_true(sn))
+    # Solve the forward eq. using the true model
+    rec_true.append(fwisolver.forward_true(sn))
     
-    if(setting["dask"]):
-        
-        wait(work_true)
-        
-        for i in range(nshots):
-        
-            rec_true.append(work_true[i].result())
-           
-        if psutil.virtual_memory().percent > setting["memory"]:
-
-            client.restart()
 
     fwisolver.rec_true = rec_true
     #==============================================================================
-
-    #==============================================================================
-    # FWI Analisys Variables
-    #==============================================================================    
-    objvr = np.zeros((1000,2))
-    cont  = 0 
-    #==============================================================================    
-    
     #==============================================================================
     # FWI Functions
     #==============================================================================    
@@ -172,67 +141,24 @@ if (__name__=='__main__'):
 
         global objvr, cont, v0, setup     
         objective = 0.
-         
-        #graph2dvel(vp_guess.data[:],setup)
-        
+
         work  = []
         grad1 = Function(name="grad1", grid=grid)
         
-        for sn in range(0, nshots):    
-        
-            clear_cache()
+    
+        clear_cache()
 
-            #update vp_guess
-            fwisolver.vp_guess(m0)
-            vp_guess = fwisolver.vp_g
-            
-            if(setting["dask"]):
-                
-                
-                work.append(client.submit(fwisolver.apply,sn))
-            
-            else:
-            
-                aux0, aux1       = fwisolver.apply(sn)
-                objective       += aux0
-                grad1.data[:,:] += aux1
+        #update vp_guess
+        fwisolver.vp_guess(m0)
+        vp_guess = fwisolver.vp_g
+        
+        usave, vsave  = fwisolver.apply(sn)
 
-        if(setting["dask"]):
-        
-            wait(work)
-            
-            for i in range(nshots):
-            
-                objective       += work[i].result()[0]
-                grad1.data[:,:] += work[i].result()[1]
-
-            if(psutil.virtual_memory().percent > setting["memory"]):
-
-                client.restart()
-
-        grad_grop = np.array(grad1.data[:])[:, :]
-        
-        if(setting["Abcs"]=='pml'):
-            
-            vel  = v0[0]
-            vres = vp_guess[0].data 
-        
-        else:
-        
-            vel  = v0
-            vres = vp_guess.data 
-        
-        objvr[cont,0] = objective
-        
-        objvr[cont,1] = la.norm(np.reshape(vres - vel,-1),2)/la.norm(np.reshape(vel,-1),2)
-        
-        cont = cont + 1
-
+    
         # np.save('data_save/objvr',objvr)
         # np.save('data_save/vres',vres)
-        print('The objective value in the ', cont, ' iteration is: ',np.round(objective,2))
-    
-        return objective, np.reshape(grad_grop,-1)
+          
+        return usave.data, vsave.data
     #==============================================================================    
 
     #==============================================================================
@@ -244,7 +170,7 @@ if (__name__=='__main__'):
    
     elif(model['vp']=='Marmousi' or model['vp']=='GM'):
     
-        sigma  = 20 
+        sigma  = 15 
         vini   = gaussian_filter(v0,sigma=sigma)
 
     m0     = np.reshape(vini,-1)
@@ -253,43 +179,13 @@ if (__name__=='__main__'):
     vel    = v0
     #==============================================================================
 
-    #==============================================================================
-    # FWI Interactions
-    #==============================================================================
-    bounds = [(vmin,vmax) for _ in range(len(m0))] 
+    usave, vsave = shots(m0)
 
-    start   = tm.time()
-    result  = optimize.minimize(shots, m0, method='L-BFGS-B', jac=True, tol = 1e-4, bounds=bounds, options={"disp": True,"eps": 1e-4, "gtol": 1e-4,"maxiter": 20})
-    end     = tm.time()
-
-    vobj    = np.zeros((cont,3)) 
-
-    for i in range(0,cont):
-
-        vobj[i,0] = i + 1
-        vobj[i,1] = objvr[i,0]
-        vobj[i,2] = objvr[i,1]
-
-    vresult = result.x
-    vresult = vresult.reshape((setup.nptx,setup.nptz))
-    #==============================================================================    
-
-    #==============================================================================
-    print("Elapsed (after compilation) = %s" % (end - start))
-    #==============================================================================
-
+    #usave = forward solution
+    #vsave = adjoint solution
     #==============================================================================
     # Plot Results
     #==============================================================================    
-    # P1 = plotgrad(grad.data,setup)
-    # P2 = graph2drec(rec.data, setup)
-    P3 = graph2dvel(v0,setup)
-    # P4 = graph2dvel(vresul,setup)
-    #==============================================================================
-
-    #==============================================================================
-    # Plot Comprative Results
-    #==============================================================================    
-    P5 = graph2dvel2(vel,vresult,setup)
-    P6 = graphobjv(vobj)
+    P3 = graph2d(usave[9],setup)
+    P4 = graph2d(vsave[1],setup)
     #==============================================================================

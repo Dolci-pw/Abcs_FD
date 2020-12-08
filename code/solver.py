@@ -59,11 +59,9 @@ class solverABCs():
             
                 op = Operator([stencil0, stencil1] + src_term + bc + bc1 + rec_term,subs=grid.spacing_map)
             
-        elif(system=='gradient'):    
-             
-            grad  = kwargs.get('grad')
-            usave = kwargs.get('usave')
+        elif(system=='adjoint'):    
 
+            vsave = kwargs.get('vsave')
             pde1 = Eq(u.dt2 - u.laplace*vp*vp + vp*vp*damp*u.dtc.T)
 
             stencil0 =  Eq(u.backward, solve(pde0,u.backward),subdomain = grid.subdomains['d0'])
@@ -73,8 +71,8 @@ class solverABCs():
             bc1 = [Eq(u[t-1,x,-k],u[t-1,x,k]) for k in range(1,int(setup.sou/2)+1)]
             src_term = src.interpolate(expr=u)
             rec_term = rec.inject(field=u.backward, expr=rec* dt**2*vp**2)
-            grad_update = Eq(grad, grad - usave * u.dt2)
-            op  = Operator([stencil0, stencil1] + bc + bc1 + rec_term + [grad_update],subs=grid.spacing_map)             
+
+            op  = Operator([stencil0, stencil1] + bc + bc1 + rec_term + [Eq(vsave,u.backward)],subs=grid.spacing_map)             
        
         else:
         
@@ -153,10 +151,9 @@ class solverABCs():
             
                 op = Operator([stencil01,stencil02] + src_term + bc + bc1 + [stencil1,stencil2] + rec_term,subs=grid.spacing_map)
 
-        elif(system=='gradient'):    
+        elif(system=='adjoint'):    
                 
-            grad  = kwargs.get('grad')
-            usave = kwargs.get('usave')
+            vsave = kwargs.get('vsave')
 
             pde02a  = u.dt2   + (dampx0+dampz0)*u.dtc.T + (dampx0*dampz0)*u - u.laplace*vp[0]*vp[0] 
             pde02b  = - (0.5/hx)*(phi1[t,x,z-1]+phi1[t,x,z]-phi1[t,x-1,z-1]-phi1[t,x-1,z])
@@ -184,8 +181,8 @@ class solverABCs():
             bc1 = [Eq(u[t-1,x,-k],u[t-1,x,k]) for k in range(1,int(setup.sou/2)+1)]          
             source_a = src.interpolate(expr=u)
             receivers   = rec.inject(field=u.backward, expr=rec*dt**2*vp[0]**2)
-            grad_update = Eq(grad, grad - usave * u.dt2)
-            op = Operator([stencil01,stencil02] + bc + bc1 + [stencil1, stencil2] + receivers + [grad_update],subs=grid.spacing_map)
+           
+            op = Operator([stencil01,stencil02] + bc + bc1 + [stencil1, stencil2] + receivers + [Eq(vsave,u.backward)],subs=grid.spacing_map)
 
         else:
             
@@ -359,10 +356,9 @@ class solverABCs():
             
                 op = Operator([stencil0] + src_term + [stencil01,stencil3,stencil02,stencil2,stencil1] + bc + bc1 + rec_term,subs=grid.spacing_map)
 
-        if(system=='gradient' and setup.Abcs=='habc-a1'):    
+        if(system=='adjoint' and setup.Abcs=='habc-a1'):    
              
-            grad  = kwargs.get('grad')
-            usave = kwargs.get('usave')
+            vsave = kwargs.get('vsave')
 
             stencil01 = [Eq(u1,u.backward),Eq(u2,u),Eq(u3,u.backward)]
             stencil02 = [Eq(u3,u.backward)]  
@@ -387,13 +383,12 @@ class solverABCs():
             source_a  = src.interpolate(expr=u)
             bc  = []
             bc1 = [Eq(u[t-1,x,-k],u[t-1,x,k]) for k in range(1,int(setup.sou/2)+1)]            
-            grad_update = Eq(grad, grad - usave * u.dt2)
-            op  = Operator([stencil0] + bc + bc1 +[stencil01,stencil3,stencil02,stencil2,stencil1] + receivers + [grad_update],subs=grid.spacing_map)
+            
+            op  = Operator([stencil0] + bc + bc1 +[stencil01,stencil3,stencil02,stencil2,stencil1] + receivers + [Eq(vsave,u.backward)],subs=grid.spacing_map)
 
 
-        if(system=='gradient' and setup.Abcs=='Higdon'):
-            grad  = kwargs.get('grad')
-            usave = kwargs.get('usave')
+        if(system=='adjoint' and setup.Abcs=='Higdon'):
+            vsave = kwargs.get('vsave')
 
             stencil01 = [Eq(u1,u.backward),Eq(u2,u),Eq(u3,u.backward)]
             stencil02 = [Eq(u3,u.backward)]  
@@ -440,8 +435,8 @@ class solverABCs():
 
             bc  = []
             bc1 = [Eq(u[t-1,x,-k],u[t-1,x,k]) for k in range(1,int(setup.sou/2)+1)]            
-            grad_update = Eq(grad, grad - usave * u.dt2)
-            op  = Operator([stencil0] + bc + bc1 +[stencil01,stencil3,stencil02,stencil2,stencil1] + receivers + [grad_update],subs=grid.spacing_map)
+            
+            op  = Operator([stencil0] + bc + bc1 +[stencil01,stencil3,stencil02,stencil2,stencil1] + receivers + [Eq(vsave,u.backward)],subs=grid.spacing_map)
 
         else:
             
@@ -531,9 +526,8 @@ class solverABCs():
 
                 op = Operator([stencil01,stencil02] + src_term + bc + bc1 + [stencil1,stencil2,stencil3,stencil4] + bczeta + rec_term,subs=grid.spacing_map)
 
-        elif(system=='gradient'):  
-            grad  = kwargs.get('grad')
-            usave = kwargs.get('usave')  
+        elif(system=='adjoint'):  
+            vsave = kwargs.get('vsave')  
                 
             pde02  = u.dt2 + vp*vp*(-u.laplace -zeta1 -zeta2 -(1/hx)*(phi1[t,x,z]-phi1[t,x-1,z]) -(1/hz)*(phi2[t,x,z]-phi2[t,x,z-1]))
 
@@ -558,9 +552,9 @@ class solverABCs():
             bczeta += [Eq(zeta2[t-1,x,0],zeta2[t-1,x,1]),Eq(zeta2[t-1,x,nptz-1],zeta2[t-1,x,nptz-2])]
                     
             receivers = rec.inject(field=u.backward, expr=rec*dt**2*vp**2)
-            grad_update = Eq(grad, grad - usave * u.dt2)
+            
 
-            op = Operator([stencil01,stencil02]  + bc + bc1 + [stencil1,stencil2,stencil3,stencil4] + bczeta + receivers + [grad_update],subs=grid.spacing_map)           
+            op = Operator([stencil01,stencil02]  + bc + bc1 + [stencil1,stencil2,stencil3,stencil4] + bczeta + receivers + [Eq(vsave,u.backward)],subs=grid.spacing_map)           
   
         return op
     
@@ -652,7 +646,7 @@ class FWISolver():
         src = RickerSource(name='src',grid=grid,f0=setting["f0"],npoint=1,time_range=self.time_range,staggered=NODE,dtype=np.float64)
 
         # The shots start at the position sd in the physical domain
-        xposf = setting["x0"] + setting["shots_dist"] + setting["shots_dist"]*sn  
+        xposf = setting["position_src"] + setting["x0"] 
         src.coordinates.data[:, 0] = xposf
         src.coordinates.data[:, 1] = setting["shotposition_z"]
         
@@ -693,10 +687,11 @@ class FWISolver():
         vp_guess = self.vp_g
         if not setting["checkpointing"]:
             # Saves Parameters    
-            nsnaps = int(nt/setting["jump"])
+            nsnaps = setting["snapshots"]
             factor  = mt.ceil(nt/nsnaps) + 1
             time_subsampled = ConditionalDimension('t_sub', parent=grid.time_dim, factor=factor)
             usave = TimeFunction(name='usave', grid=grid, time_order=2, space_order=2,save=nsnaps, time_dim=time_subsampled)
+            vsave = TimeFunction(name='vsave', grid=grid, time_order=2, space_order=2,save=nsnaps, time_dim=time_subsampled)
 
         # Receivers Parameters
         nrec = setting["rec_n"] #receivers numbers
@@ -713,7 +708,7 @@ class FWISolver():
         src = RickerSource(name='src',grid=grid,f0=setting["f0"],npoint=1,time_range=self.time_range,staggered=NODE,dtype=np.float64)
 
         # The shots start at the position 2*sd in the physical domain
-        xposf = setting["x0"] + setting["shots_dist"] + setting["shots_dist"]*sn  
+        xposf = setting["position_src"] + setting["x0"]
         src.coordinates.data[:, 0] = xposf
         src.coordinates.data[:, 1] = setting["shotposition_z"] 
 
@@ -754,7 +749,6 @@ class FWISolver():
             vector_adj = v
 
 
-        grad = Function(name="grad", grid=grid)
         if setting["checkpointing"]:
             cp = DevitoCheckpoint([u])
             n_checkpoints = setting["n_checkpointing"]
@@ -786,7 +780,7 @@ class FWISolver():
             op_fw_guess = solv(recg, src, vp_guess,g,vector,grid,setup,system='forward',save=True, usave=usave) 
             
             # Adjoint-based gradient solver -- Wrapper
-            op_bw = solv(residual, src, vp_guess,g,vector_adj,grid,setup,system='gradient',grad=grad,usave=usave)
+            op_bw = solv(residual, src, vp_guess,g,vector_adj,grid,setup,system='adjoint',vsave=vsave)
 
             op_fw_guess(dt=dt0)
 
@@ -796,11 +790,11 @@ class FWISolver():
             op_bw(dt=dt0)
 
 
-        J = 0.5*np.linalg.norm(residual.data.flatten())**2
-        grad.data[0:setup.npmlx,:] = 0.
-        grad.data[-setup.npmlx:setup.nptx,:] = 0.
-        grad.data[:,-setup.npmlz:setup.nptz] = 0.
+        # J = 0.5*np.linalg.norm(residual.data.flatten())**2
+        # grad.data[0:setup.npmlx,:] = 0.
+        # grad.data[-setup.npmlx:setup.nptx,:] = 0.
+        # grad.data[:,-setup.npmlz:setup.nptz] = 0.
 
-        return J, np.copy(grad.data)
+        return usave, vsave
     #==============================================================================    
     

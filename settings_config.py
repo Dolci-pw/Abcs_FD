@@ -8,7 +8,7 @@ import numpy             as np
 class settings:
 #==============================================================================
     model = {
-        "vp":'Circle'   # Circle, Marmousi, GM or GMnew   
+        "vp":'Marmousi'   # Circle, Marmousi, GM or GMnew   
             }
 #==============================================================================
 # Parameters Settings for Homogeneous and Heterogeneous Model
@@ -132,34 +132,33 @@ class settings:
 # Parameters Settings for Marmousi with FWI
 #==============================================================================
     setting5 = {
-        "x0": 0.,               # x initial in metters
+        "x0": 4000.,               # x initial in metters
         "z0": 0.,               # z initial in metters
         "lenpmlx": 200,          # pml lenght x direction 
         "lenpmlz": 200,          # pml lenght z direction 
-        "nptx": 1200,            # number of points in x-axis
-        "nptz": 1200,            # number of points in z-axis
-        "lenx": 2000,            # x-axis lenght (metters)
-        "lenz": 2000,            # z-axis lenght (metters)
+        "nptx": 901,            # number of points in x-axis
+        "nptz": 321,            # number of points in z-axis
+        "lenx": 9000,            # x-axis lenght (metters)
+        "lenz": 3200,            # z-axis lenght (metters)
         "t0": 0.,               # initial time
-        "tn": 2000.,             # final time milliseconds
+        "tn": 3200.,             # final time milliseconds
         "cfl": 0.4,             # cfl parameter
-        "f0": 0.005,            # frequency peak KHz
+        "f0": 0.02,            # frequency peak KHz
         "Abcs": 'cpml',         # Abcs methods, options=damping, pml, cpml, habc-a1, Higdon
         "shotposition_x":125,   # shot position from the x0 (metters)
         "shotposition_z":1.25,  # shot position from the z0 (metters)
         "recposition_x": 2.25,  # Receiver position from the z0 (metters)
         "recposition_z": 2.25,  # Receiver position from the z0 (metters)
-        "rec_n": 200,           # Receiver number
+        "rec_n": 541,           # Receiver number
         "habcw": 2,             # 1=linear , 2=nonlinear weight (used in habc-a1)
-        "jump": 1,              # Jump to save the wave equation solution to be used in adjoint-based gradient
-        "shots_dist": 500,       # distance between the shots in metters
+        "position_src": 4500,   # source position on the physical domain
         "snapshots": 10,        # wave equation solution snapshots to be saved  
         "USE_GPU_DASK": False,  # True or False
         "threads_per_worker": 1,
         "memory": 70.,          # Restart DASK cluster when more than X% of memory is used
-        "dask": True,           # This variable change if you start the DASK cluster
+        "dask": False,           # This variable change if you start the DASK cluster
         "death_timeout": 800,    
-        "checkpointing":True,   # True or False
+        "checkpointing":False,   # True or False
         "n_checkpointing": 400, # None or an int value n<timestep
         }
        

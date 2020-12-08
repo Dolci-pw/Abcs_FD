@@ -8,7 +8,7 @@ import numpy             as np
 class settings:
 #==============================================================================
     model = {
-        "vp":'Marmousi_Reference'   # Circle, Marmousi, GM or GMnew   
+        "vp":'Marmousi'   # Circle, Marmousi, GM or GMnew   
             }
 #==============================================================================
 # Parameters Settings for Homogeneous and Heterogeneous Model
@@ -144,7 +144,7 @@ class settings:
         "tn": 3200.,            # final time milliseconds
         "cfl": 0.4,             # cfl parameter
         "f0": 0.02,             # frequency peak KHz
-        "Abcs": 'cpml',         # Abcs methods, options=damping, pml, cpml, habc-a1, Higdon
+        "Abcs": 'pml',         # Abcs methods, options=damping, pml, cpml, habc-a1, Higdon
         "shotposition_x":125,   # shot position from the x0 (metters)
         "shotposition_z":1.25,  # shot position from the z0 (metters)
         "recposition_x": 2.25,  # Receiver position from the z0 (metters)

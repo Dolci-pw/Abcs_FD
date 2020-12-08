@@ -134,6 +134,136 @@ def graph2dadj(U,setup):
 #==============================================================================
 
 #==============================================================================
+# Plot 21 - Forward Difference Displacement
+#==============================================================================
+def graph2sdif_forward(setup):
+    
+    x0pml = setup.x0pml
+    x1pml = setup.x1pml
+    z0pml = setup.z0
+    z1pml = setup.z1pml
+    npmlx = setup.npmlx
+    npmlz = setup.npmlz
+    
+    usol = np.load("data_save/uforward_devito.npy")
+    uref = np.load("data_save/uadjoint_devito.npy")
+    udif = uref-usol
+    
+    fscale = 10**(-3) 
+    
+    scale  = np.amax(udif)/10.
+    
+    plot.figure(figsize = (14,4))
+
+    extent = [fscale*x0pml,fscale*x1pml,fscale*z1pml,fscale*z0pml]
+    
+    fig = plot.imshow(np.transpose(udif),vmin=-scale, vmax=scale, cmap="seismic", aspect=1, extent=extent)
+    
+    plot.axis('equal')
+    
+    plot.gca().xaxis.set_major_formatter(mticker.FormatStrFormatter('%.2f km'))
+   
+    plot.gca().yaxis.set_major_formatter(mticker.FormatStrFormatter('%.2f km'))
+    
+    plot.title('Forward Displacement Difference Profile')
+    
+    plot.grid()
+    
+    ax = plot.gca()
+   
+    ax.xaxis.set_major_locator(plot.MaxNLocator(4))
+    
+    ax.yaxis.set_major_locator(plot.MaxNLocator(4))
+    
+    divider = make_axes_locatable(ax)
+    
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    
+    tick_locator = ticker.MaxNLocator(nbins=5)
+    
+    cbar = plot.colorbar(fig, cax=cax, format='%.1e')
+    
+    cbar.locator = tick_locator
+    
+    cbar.update_ticks()
+    
+    plot.draw()
+            
+    plot.savefig('figures/forward_difference_displacement_map.eps',dpi=100,format='eps')
+    
+    #plot.show()
+    
+    plot.close()
+    
+    return
+#==============================================================================
+
+#==============================================================================
+# Plot 22 - Adjoint Difference Displacement
+#==============================================================================
+def graph2sdif_adjoint(setup):
+    
+    x0pml = setup.x0pml
+    x1pml = setup.x1pml
+    z0pml = setup.z0
+    z1pml = setup.z1pml
+    npmlx = setup.npmlx
+    npmlz = setup.npmlz
+    
+    usol = np.load("data_save/uforward_reference_devito.npy")
+    uref = np.load("data_save/uadjoint_reference_devito.npy")
+    udif = uref-usol
+    
+    fscale = 10**(-3) 
+    
+    scale  = np.amax(udif)/10.
+    
+    plot.figure(figsize = (14,4))
+
+    extent = [fscale*x0pml,fscale*x1pml,fscale*z1pml,fscale*z0pml]
+    
+    fig = plot.imshow(np.transpose(udif),vmin=-scale, vmax=scale, cmap="seismic", aspect=1, extent=extent)
+    
+    plot.axis('equal')
+    
+    plot.gca().xaxis.set_major_formatter(mticker.FormatStrFormatter('%.2f km'))
+   
+    plot.gca().yaxis.set_major_formatter(mticker.FormatStrFormatter('%.2f km'))
+    
+    plot.title('Adjoint Displacement Difference Profile')
+    
+    plot.grid()
+    
+    ax = plot.gca()
+   
+    ax.xaxis.set_major_locator(plot.MaxNLocator(4))
+    
+    ax.yaxis.set_major_locator(plot.MaxNLocator(4))
+    
+    divider = make_axes_locatable(ax)
+    
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    
+    tick_locator = ticker.MaxNLocator(nbins=5)
+    
+    cbar = plot.colorbar(fig, cax=cax, format='%.1e')
+    
+    cbar.locator = tick_locator
+    
+    cbar.update_ticks()
+    
+    plot.draw()
+            
+    plot.savefig('figures/adjoint_difference_displacement_map.eps',dpi=100,format='eps')
+    
+    #plot.show()
+    
+    plot.close()
+    
+    return
+#==============================================================================
+
+#==============================================================================
 # Plot 2 - Receivers
 #==============================================================================
 def graph2drec(rec,setup):  
@@ -197,7 +327,7 @@ def graph2drec(rec,setup):
 #==============================================================================
 # Plot 3 - Gradient
 #==============================================================================
-def plotgrad(grad, setup):
+def plotgrad(grad,setup):
     
     x0pml = setup.x0pml
     x1pml = setup.x1pml

@@ -31,7 +31,9 @@ if (__name__=='__main__'):
     sys.path.insert(0, './code')
     from   timeit import default_timer as timer
     import solver, domain2D, utils, velmodel
-    from   plots  import plotgrad, graph2drec, graph2d, graph2dvel, graph2dvel2, graphobjv, graph2drecres, graph2dvelfull, graph2dadj
+    from   plots  import plotgrad, graph2drec, graph2d, graph2dvel, graph2dvel2
+    from   plots  import graphobjv, graph2drecres, graph2dvelfull, graph2dadj
+    from   plots  import graph2sdif_forward, graph2sdif_adjoint
     #==============================================================================
 
     #==============================================================================
@@ -199,10 +201,10 @@ if (__name__=='__main__'):
     #==============================================================================
     # Plot Results
     #==============================================================================    
-    V1 = graph2dvel(vel,setup)
-    V2 = graph2dvelfull(vel,setup)
-    P3 = graph2d(usave[9],setup)
-    P4 = graph2dadj(vsave[1],setup)
+    #V1 = graph2dvel(vel,setup)
+    #V2 = graph2dvelfull(vel,setup)
+    #P3 = graph2d(usave[9],setup)
+    #P4 = graph2dadj(vsave[1],setup)
     #==============================================================================
 
     #==============================================================================
@@ -215,4 +217,13 @@ if (__name__=='__main__'):
     else:
         
         S1 = utils.datasave(usave[9],vsave[1],setup,0)
+    #==============================================================================
+    
+    #==============================================================================
+    # Comparative Results
+    #==============================================================================
+    if(model['vp']!='Marmousi_Reference'):
+
+        C1 = graph2sdif_forward(setup)
+        C2 = graph2sdif_adjoint(setup)
     #==============================================================================

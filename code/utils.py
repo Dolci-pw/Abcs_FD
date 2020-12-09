@@ -342,7 +342,7 @@ def gerav1m0(setup,v0):
 #==============================================================================
 # Data Save
 #==============================================================================        
-def datasave(uforward,uadjoint,setup,i):
+def datasave(uforward,uadjoint,receivers,setup,i):
       
     nptx  = setup.nptx
     nptz  = setup.nptz
@@ -357,6 +357,7 @@ def datasave(uforward,uadjoint,setup,i):
          
         np.save("data_save/uforward_devito",uforward[npmlx:-npmlx,0:-npmlz])
         np.save("data_save/uadjoint_devito",uadjoint[npmlx:-npmlx,0:-npmlz])
+        np.save("data_save/receivers_devito",receivers)
 
     if(i==1):
         
@@ -378,6 +379,7 @@ def datasave(uforward,uadjoint,setup,i):
         
         np.save("data_save/uforward_reference_devito",uforward[xi:(xf+1),zi:(zf+1)])
         np.save("data_save/uadjoint_reference_devito",uadjoint[xi:(xf+1),zi:(zf+1)])
+        np.save("data_save/receivers_reference_devito",receivers)
 #==============================================================================
 
 #==============================================================================

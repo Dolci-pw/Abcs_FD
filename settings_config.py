@@ -9,6 +9,7 @@ class settings:
 #==============================================================================
     model = {
         "vp":'Marmousi'   # Circle, Marmousi, GM or GMnew   
+        #"vp":'Marmousi_Reference'   # Circle, Marmousi, GM or GMnew   
             }
 #==============================================================================
 # Parameters Settings for Homogeneous and Heterogeneous Model
@@ -134,8 +135,8 @@ class settings:
     setting5 = {
         "x0": 4000.,            # x initial in metters
         "z0": 0.,               # z initial in metters
-        "lenpmlx": 200,         # pml lenght x direction 
-        "lenpmlz": 200,         # pml lenght z direction 
+        "lenpmlx": 900,         # pml lenght x direction 
+        "lenpmlz": 320,         # pml lenght z direction 
         "nptx": 901,            # number of points in x-axis
         "nptz": 321,            # number of points in z-axis
         "lenx": 9000,           # x-axis lenght (metters)
@@ -144,11 +145,11 @@ class settings:
         "tn": 3200.,            # final time milliseconds
         "cfl": 0.4,             # cfl parameter
         "f0": 0.02,             # frequency peak KHz
-        "Abcs": 'pml',         # Abcs methods, options=damping, pml, cpml, habc-a1, Higdon
-        "shotposition_x":125,   # shot position from the x0 (metters)
+        "Abcs": 'pml',          # Abcs methods, options=damping, pml, cpml, habc-a1, Higdon
         "shotposition_z":1.25,  # shot position from the z0 (metters)
-        "recposition_x": 2.25,  # Receiver position from the z0 (metters)
         "recposition_z": 2.25,  # Receiver position from the z0 (metters)
+        "pos_rec_0":4100,       # first position of the receiver
+        "pos_rec_n":12900,      # last position of the receiver
         "rec_n": 541,           # Receiver number
         "habcw": 2,             # 1=linear , 2=nonlinear weight (used in habc-a1)
         "position_src": 4500,   # source position on the physical domain
@@ -180,13 +181,13 @@ class settings:
         "cfl": 0.4,             # cfl parameter
         "f0": 0.02,             # frequency peak KHz
         "Abcs": 'pml',          # Abcs methods, options=damping, pml, cpml, habc-a1, Higdon
-        "shotposition_x":125,   # shot position from the x0 (metters)
         "shotposition_z":1.25,  # shot position from the z0 (metters)
-        "recposition_x": 2.25,  # Receiver position from the z0 (metters)
         "recposition_z": 2.25,  # Receiver position from the z0 (metters)
+        "pos_rec_0":4100,       # first position of the receiver
+        "pos_rec_n":12900,      # last position of the receiver
         "rec_n": 541,           # Receiver number
         "habcw": 2,             # 1=linear , 2=nonlinear weight (used in habc-a1)
-        "position_src": 4500,   # source position on the physical domain
+        "position_src": 7500,   # source position on the physical domain
         "snapshots": 10,        # wave equation solution snapshots to be saved  
         "USE_GPU_DASK": False,  # True or False
         "threads_per_worker": 1,

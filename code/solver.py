@@ -18,10 +18,15 @@ from   examples.checkpointing.checkpoint import DevitoCheckpoint, CheckpointOper
 
 #==============================================================================
 class solverABCs():
-    
+#==============================================================================
+
+#==============================================================================
+# Damping Solver 
+#==============================================================================
+
+#==============================================================================    
     def solvedamp(rec,src,vp,geramdamp,u,grid,setup,system,save=False,**kwargs):    
-        
-    
+#==============================================================================
         nptx = setup.nptx
         nptz = setup.nptz
 
@@ -34,8 +39,7 @@ class solverABCs():
         dt      = grid.stepping_dim.spacing
        
         subds = ['d1','d2','d3']
-        
-        
+                
         pde0 = Eq(u.dt2 - u.laplace*vp*vp)
 
         if(system=='forward'):
@@ -79,7 +83,13 @@ class solverABCs():
             assert "Invalid option"
 
         return op 
+#==============================================================================
 
+#==============================================================================
+# PML Solver 
+#==============================================================================
+
+#==============================================================================
     def solvepml(rec,src,vp,geramdamp,vector,grid,setup,system,save=False,**kwargs):   
 
         nptx = setup.nptx
@@ -189,7 +199,13 @@ class solverABCs():
             assert "Invalid option"
         
         return op
+#==============================================================================
 
+#==============================================================================
+# HABC Solver 
+#==============================================================================
+
+#==============================================================================
     def solvehabc(rec,src,vp,gerapesos,u,grid,setup,system,save=False,**kwargs):
         
         (hx,hz) = grid.spacing_map 
@@ -281,8 +297,8 @@ class solverABCs():
             c241 = -gama221 - gama241
 
             aux1      = ( u2[x,z]*(-c111*c221-c121*c211) + u3[x+1,z]*(-c111*c231-c131*c211) + u2[x+1,z]*(-c111*c241-c121*c231-c141*c211-c131*c221) 
-                + u1[x,z]*(-c121*c221) + u1[x+1,z]*(-c121*c241-c141*c221) + u3[x+2,z]*(-c131*c231) +u2[x+2,z]*(-c131*c241-c141*c231)
-                + u1[x+2,z]*(-c141*c241))/(c111*c211)
+                      + u1[x,z]*(-c121*c221) + u1[x+1,z]*(-c121*c241-c141*c221) + u3[x+2,z]*(-c131*c231) +u2[x+2,z]*(-c131*c241-c141*c231)
+                      + u1[x+2,z]*(-c141*c241))/(c111*c211)
             pde1      = (1-pesosx[x,z])*u3[x,z] + pesosx[x,z]*aux1
             stencil1  = Eq(u.forward,pde1,subdomain = grid.subdomains['d1'])
 
@@ -308,8 +324,8 @@ class solverABCs():
             c242 = -gama222 - gama242
 
             aux2      = ( u2[x,z]*(-c112*c222-c122*c212) + u3[x-1,z]*(-c112*c232-c132*c212) + u2[x-1,z]*(-c112*c242-c122*c232-c142*c212-c132*c222) 
-                + u1[x,z]*(-c122*c222) + u1[x-1,z]*(-c122*c242-c142*c222) + u3[x-2,z]*(-c132*c232) +u2[x-2,z]*(-c132*c242-c142*c232)
-                + u1[x-2,z]*(-c142*c242))/(c112*c212)
+                      + u1[x,z]*(-c122*c222) + u1[x-1,z]*(-c122*c242-c142*c222) + u3[x-2,z]*(-c132*c232) +u2[x-2,z]*(-c132*c242-c142*c232)
+                      + u1[x-2,z]*(-c142*c242))/(c112*c212)
             pde2      = (1-pesosx[x,z])*u3[x,z] + pesosx[x,z]*aux2
             stencil2  = Eq(u.forward,pde2,subdomain = grid.subdomains['d2'])
 
@@ -386,7 +402,6 @@ class solverABCs():
             
             op  = Operator([stencil0] + bc + bc1 +[stencil01,stencil3,stencil02,stencil2,stencil1] + receivers + [Eq(vsave,u.backward)],subs=grid.spacing_map)
 
-
         if(system=='adjoint' and setup.Abcs=='Higdon'):
             vsave = kwargs.get('vsave')
 
@@ -443,7 +458,13 @@ class solverABCs():
             assert "Invalid option"
 
         return op
+#==============================================================================
 
+#==============================================================================
+# CPML Solver 
+#==============================================================================
+
+#==============================================================================
     def solvecpml(rec,src,vp,geradamp,vector,grid, setup,system,save=False,**kwargs):   
         
         u     = vector[0]
@@ -486,7 +507,6 @@ class solverABCs():
         b2w = Function(name="b2w", grid=grid,space_order=2,staggered=NODE ,dtype=np.float64)
         b2w.data[:,:] = B2C
 
-        
         pde01   = Eq(u.dt2-u.laplace*vp*vp) 
                                                      
         if(system=='forward'):
@@ -505,7 +525,6 @@ class solverABCs():
             stencil2 = [Eq(phi2.forward,  pde2,subdomain = grid.subdomains[subds[i]]) for i in range(0,len(subds))]
             stencil3 = [Eq(zeta1.forward, pde3,subdomain = grid.subdomains[subds[i]]) for i in range(0,len(subds))]
             stencil4 = [Eq(zeta2.forward, pde4,subdomain = grid.subdomains[subds[i]]) for i in range(0,len(subds))]
-            #==============================================================================
 
             bc = [Eq(u[t+1,0,z],0.),Eq(u[t+1,nptx-1,z],0.),Eq(u[t+1,x,nptz-1],0.)]
             bc1 = [Eq(u[t+1,x,-k],u[t+1,x,k]) for k in range(1,int(setup.sou/2)+1)]  
@@ -553,16 +572,16 @@ class solverABCs():
                     
             receivers = rec.inject(field=u.backward, expr=rec*dt**2*vp**2)
             
-
             op = Operator([stencil01,stencil02]  + bc + bc1 + [stencil1,stencil2,stencil3,stencil4] + bczeta + receivers + [Eq(vsave,u.backward)],subs=grid.spacing_map)           
   
         return op
+#==============================================================================
     
-
-
-        
+#==============================================================================
 class FWISolver():
+#==============================================================================
 
+#==============================================================================
     def __init__(self,set_time,setup,setting,grid,utils,v0,vp):  
 
         self.dt0, self.nt, self.time_range = set_time  #time discretization
@@ -575,9 +594,11 @@ class FWISolver():
         self.vp_g     = 0
 
         self.abc = setting["Abcs"]
-        #==============================================================================
-        # Solver Settigns
-        #==============================================================================          
+#==============================================================================
+        
+#==============================================================================
+# Solver Settigns
+#==============================================================================                  
         if(self.abc=='damping'):
         
             self.g        = utils.geramdamp(self.setup,v0,self.abc)
@@ -598,24 +619,25 @@ class FWISolver():
             habcw    = setting["habcw"]
             self.g        = utils.gerapesos(self.setup,habcw)
             self.solv     = solverABCs.solvehabc
-    
+#==============================================================================
+
+#==============================================================================
     def vp_guess(self, m0):
+        
         grid    = self.grid
         (x, z)  = grid.dimensions
         setting = self.setting
         setup   = self.setup
+        
         if(setting["Abcs"]=='pml'):
     
             vp_guess0  = Function(name="vp_guess0",grid=grid,space_order=setup.sou,staggered=NODE,dtype=np.float64)
             vp_guess0.data[:,:] = m0.reshape((setup.nptx,setup.nptz))
-
             v1loc = self.utils.gerav1m0(setup,vp_guess0.data)
-
             vp_guess1  = Function(name="vp_guess1",grid=grid,space_order=setup.sou,staggered=(x,z),dtype=np.float64)
             vp_guess1.data[0:setup.nptx-1,0:setup.nptz-1]  = v1loc
             vp_guess1.data[setup.nptx-1,0:setup.nptz-1]    = vp_guess1.data[setup.nptx-2,0:setup.nptz-1]
-            vp_guess1.data[0:setup.nptx,setup.nptz-1]      = vp_guess1.data[0:setup.nptx,setup.nptz-2]
-        
+            vp_guess1.data[0:setup.nptx,setup.nptz-1]      = vp_guess1.data[0:setup.nptx,setup.nptz-2]        
             vp_guess = [vp_guess0,vp_guess1]
         
         else:
@@ -624,11 +646,15 @@ class FWISolver():
             vp_guess.data[:,:] = m0.reshape((setup.nptx,setup.nptz))
 
         self.vp_g = vp_guess
+#==============================================================================
 
-    #==============================================================================
-    # True model solver function
-    #==============================================================================    
+#==============================================================================
+# True model solver function
+#==============================================================================    
+
+#==============================================================================
     def forward_true(self,sn):
+
         setting = self.setting
         nt      = self.nt
         setup   = self.setup
@@ -640,8 +666,12 @@ class FWISolver():
         (x, z)  = grid.dimensions
         nrec   = setting["rec_n"] #receivers numbers
         rec    = Receiver(name='rec',grid=grid,npoint=nrec,time_range=self.time_range,staggered=NODE,dtype=np.float64)
-        rec.coordinates.data[:, 0] = np.linspace(setup.x0pml+100,setup.x1pml-100,nrec)
+        #rec.coordinates.data[:, 0] = np.linspace(setup.x0pml+100,setup.x1pml-100,nrec)
+        rec_0 = setting["pos_rec_0"]
+        rec_n = setting["pos_rec_n"]
+        rec.coordinates.data[:, 0] = np.linspace(rec_0,rec_n,nrec)
         rec.coordinates.data[:, 1] = setting["recposition_z"] 
+
         # Source Prameters
         src = RickerSource(name='src',grid=grid,f0=setting["f0"],npoint=1,time_range=self.time_range,staggered=NODE,dtype=np.float64)
 
@@ -650,29 +680,38 @@ class FWISolver():
         src.coordinates.data[:, 0] = xposf
         src.coordinates.data[:, 1] = setting["shotposition_z"]
         
-        u    = TimeFunction(name="u",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=NODE,dtype=np.float64) 
+        u = TimeFunction(name="u",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=NODE,dtype=np.float64) 
 
-        if setting["Abcs"]=='pml' or setting["Abcs"]=='cpml':
+        if(setting["Abcs"]=='pml' or setting["Abcs"]=='cpml'):
+            
             phi1 = TimeFunction(name="phi1",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=(x,z),dtype=np.float64)
             phi2 = TimeFunction(name="phi2",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=(x,z),dtype=np.float64)
             
-            if setting["Abcs"]=='cpml':
+            if(setting["Abcs"]=='cpml'):
+                
                 zeta1 = TimeFunction(name="zeta1",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=NODE,dtype=np.float64)
                 zeta2 = TimeFunction(name="zeta2",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=NODE,dtype=np.float64)
                 vector  = [u,phi1, phi2,zeta1,zeta2]
-            if setting["Abcs"]=='pml':
+            
+            if(setting["Abcs"]=='pml'):
+                
                 vector  = [u,phi1, phi2]
+        
         else:
+        
             vector = u   
 
         op_fw = solv(rec,src,self.vp,g,vector,grid,setup,system='forward')
         op_fw(dt=dt0)
+        
         return rec
+#==============================================================================
 
+#==============================================================================
+# FWI Function
+#==============================================================================    
 
-    #==============================================================================
-    # FWI Function
-    #==============================================================================    
+#==============================================================================
     def apply(self,sn):
         rec     = self.rec_true[sn].data[:]
         setting = self.setting
@@ -685,6 +724,7 @@ class FWISolver():
         abc     = self.abc
         (x, z)  = grid.dimensions
         vp_guess = self.vp_g
+        
         if not setting["checkpointing"]:
             # Saves Parameters    
             nsnaps = setting["snapshots"]
@@ -697,11 +737,17 @@ class FWISolver():
         nrec = setting["rec_n"] #receivers numbers
 
         recg  = Receiver(name='recg',grid=grid,npoint=nrec,time_range=self.time_range,staggered=NODE,dtype=np.float64)
-        recg.coordinates.data[:, 0] = np.linspace(setup.x0pml+100,setup.x1pml-100,nrec)
+        #recg.coordinates.data[:, 0] = np.linspace(setup.x0pml+100,setup.x1pml-100,nrec)
+        rec_0 = setting["pos_rec_0"]
+        rec_n = setting["pos_rec_n"]
+        recg.coordinates.data[:, 0] = np.linspace(rec_0,rec_n,nrec)
         recg.coordinates.data[:, 1] = setting["recposition_z"]
 
         residual  = Receiver(name='residual',grid=grid,npoint=nrec,time_range=self.time_range,staggered=NODE,dtype=np.float64)
-        residual.coordinates.data[:, 0] = np.linspace(setup.x0pml+100,setup.x1pml-100,nrec)
+        #residual.coordinates.data[:, 0] = np.linspace(setup.x0pml+100,setup.x1pml-100,nrec)
+        rec_0 = setting["pos_rec_0"]
+        rec_n = setting["pos_rec_n"]
+        residual.coordinates.data[:, 0] = np.linspace(rec_0,rec_n,nrec)
         residual.coordinates.data[:, 1] = setting["recposition_z"]
 
         # Source Prameters
@@ -712,12 +758,10 @@ class FWISolver():
         src.coordinates.data[:, 0] = xposf
         src.coordinates.data[:, 1] = setting["shotposition_z"] 
 
-        
         u    = TimeFunction(name="u",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=NODE,dtype=np.float64) 
         v    = TimeFunction(name="v",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=NODE,dtype=np.float64) 
    
-
-        if abc=='pml' or abc=='cpml':
+        if(abc=='pml' or abc=='cpml'):
                 
             phi1 = TimeFunction(name="phi1",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=(x,z),dtype=np.float64)
             phi2 = TimeFunction(name="phi2",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=(x,z),dtype=np.float64)
@@ -725,7 +769,7 @@ class FWISolver():
             phi1_adj = TimeFunction(name="phi1_adj",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=(x,z),dtype=np.float64)
             phi2_adj = TimeFunction(name="phi2_adj",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=(x,z),dtype=np.float64)
 
-            if abc=='cpml':
+            if(abc=='cpml'):
                 
                 zeta1 = TimeFunction(name="zeta1",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=NODE,dtype=np.float64)
                 zeta2 = TimeFunction(name="zeta2",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=NODE,dtype=np.float64)
@@ -735,21 +779,18 @@ class FWISolver():
     
                 vector      = [u,phi1,phi2,zeta1,zeta2]      
                 vector_adj  = [v,phi1_adj, phi2_adj,zeta1_adj,zeta2_adj]
-
                
-               
-            if abc=='pml':
+            if(abc=='pml'):
                 vector     = [u,phi1, phi2]
                 vector_adj = [v,phi1_adj, phi2_adj]
-                
             
         else:
            
             vector     = u
             vector_adj = v
 
-
-        if setting["checkpointing"]:
+        if(setting["checkpointing"]):
+            
             cp = DevitoCheckpoint([u])
             n_checkpoints = setting["n_checkpointing"]
 
@@ -789,12 +830,10 @@ class FWISolver():
             
             op_bw(dt=dt0)
 
-
         # J = 0.5*np.linalg.norm(residual.data.flatten())**2
         # grad.data[0:setup.npmlx,:] = 0.
         # grad.data[-setup.npmlx:setup.nptx,:] = 0.
         # grad.data[:,-setup.npmlz:setup.nptz] = 0.
 
-        return usave, vsave
-    #==============================================================================    
-    
+        return usave, vsave, recg.data
+#==============================================================================    

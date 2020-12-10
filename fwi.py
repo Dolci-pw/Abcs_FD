@@ -31,9 +31,9 @@ if (__name__=='__main__'):
     sys.path.insert(0, './code')
     from   timeit import default_timer as timer
     import solver, domain2D, utils, velmodel
-    from   plots  import plotgrad, graph2drec, graph2d, graph2dvel, graph2dvel2
-    from   plots  import graphobjv, graph2drecres, graph2dvelfull, graph2dadj
-    from   plots  import graph2sdif_forward, graph2sdif_adjoint
+    # from   plots  import plotgrad, graph2drec, graph2d, graph2dvel, graph2dvel2
+    # from   plots  import graphobjv, graph2drecres, graph2dvelfull, graph2dadj
+    # from   plots  import graph2sdif_forward, graph2sdif_adjoint
     #==============================================================================
 
     #==============================================================================
@@ -84,14 +84,14 @@ if (__name__=='__main__'):
     
     elif(model['vp']=='Marmousi'):
     
-        with segyio.open('VelModelFiles/marmousi_perfil1.segy') as segyfile:
+        with segyio.open('VelModelFiles/Mar2_Vp_1.25m.segy') as segyfile:
             vp_file = segyio.tools.cube(segyfile)[0,:,:]
         
         vp, v0 = velmodel.SetVel(model,setup, setting,grid,vp_file=vp_file)
         
     elif(model['vp']=='Marmousi_Reference'):
     
-        with segyio.open('VelModelFiles/marmousi_perfil1.segy') as segyfile:
+        with segyio.open('VelModelFiles/Mar2_Vp_1.25m.segy') as segyfile:
             vp_file = segyio.tools.cube(segyfile)[0,:,:]
         
         vp, v0 = velmodel.SetVel(model,setup, setting,grid,vp_file=vp_file)
@@ -101,7 +101,8 @@ if (__name__=='__main__'):
         vp_file = np.fromfile('VelModelFiles/gm_perfil1.bin',dtype='float32')
         vp, v0 = velmodel.SetVel(model,setup, setting,grid,vp_file=vp_file)
     #==============================================================================
-    
+    # graph2dvelfull(vp.data,setup)
+    # quit()
     #==============================================================================    
     # Time Parameters
     #==============================================================================
@@ -142,7 +143,8 @@ if (__name__=='__main__'):
     sn = 0
     
     # Solve the forward eq. using the true model
-    rec_true.append(fwisolver.forward_true(sn))
+    aux0, usave = fwisolver.forward_true(sn)
+    rec_true.append(aux0)
     
     fwisolver.rec_true = rec_true
     #==============================================================================
@@ -169,7 +171,7 @@ if (__name__=='__main__'):
         # np.save('data_save/objvr',objvr)
         # np.save('data_save/vres',vres)
           
-        return usave.data, vsave.data
+        return  vsave.data
     #==============================================================================    
 
     #==============================================================================
@@ -188,12 +190,15 @@ if (__name__=='__main__'):
     vmax   = np.amax(v0)
     vmin   = np.amin(v0)
     vel    = v0
+   
     #==============================================================================
 
     #==============================================================================
     # Save Options
     #==============================================================================
-    usave, vsave = shots(m0)
+    vsave = shots(m0)
+    # np.save('data_save/fwd_damp',usave)
+    # np.save('data_save/adj_damp',vsave)
     #usave = forward solution
     #vsave = adjoint solution
     #==============================================================================
@@ -210,20 +215,20 @@ if (__name__=='__main__'):
     #==============================================================================
     # Save Results
     #==============================================================================
-    if(model['vp']=='Marmousi_Reference'):
+    # if(model['vp']=='Marmousi_Reference'):
 
-        S1 = utils.datasave(usave[9],vsave[1],setup,1)
+    #     S1 = utils.datasave(usave[9],vsave[1],setup,1)
         
-    else:
+    # else:
         
-        S1 = utils.datasave(usave[9],vsave[1],setup,0)
+    #     S1 = utils.datasave(usave[9],vsave[1],setup,0)
     #==============================================================================
     
     #==============================================================================
     # Comparative Results
     #==============================================================================
-    if(model['vp']!='Marmousi_Reference'):
+    # if(model['vp']!='Marmousi_Reference'):
 
-        C1 = graph2sdif_forward(setup)
-        C2 = graph2sdif_adjoint(setup)
+    #     C1 = graph2sdif_forward(setup)
+    #     C2 = graph2sdif_adjoint(setup)
     #==============================================================================

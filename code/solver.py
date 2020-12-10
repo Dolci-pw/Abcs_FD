@@ -639,14 +639,16 @@ class FWISolver():
         abc     = self.abc
         (x, z)  = grid.dimensions
         nrec   = setting["rec_n"] #receivers numbers
+        rec_0  = setting["pos_rec_0"]
+        rec_n  = setting["pos_rec_n"]
         rec    = Receiver(name='rec',grid=grid,npoint=nrec,time_range=self.time_range,staggered=NODE,dtype=np.float64)
-        rec.coordinates.data[:, 0] = np.linspace(setup.x0pml+100,setup.x1pml-100,nrec)
+        rec.coordinates.data[:, 0] = np.linspace(rec_0,rec_n,nrec)
         rec.coordinates.data[:, 1] = setting["recposition_z"] 
         # Source Prameters
         src = RickerSource(name='src',grid=grid,f0=setting["f0"],npoint=1,time_range=self.time_range,staggered=NODE,dtype=np.float64)
 
         # The shots start at the position sd in the physical domain
-        xposf = setting["position_src"] + setting["x0"] 
+        xposf = setting["position_src"] + 4000 
         src.coordinates.data[:, 0] = xposf
         src.coordinates.data[:, 1] = setting["shotposition_z"]
         
@@ -664,10 +666,14 @@ class FWISolver():
                 vector  = [u,phi1, phi2]
         else:
             vector = u   
-
-        op_fw = solv(rec,src,self.vp,g,vector,grid,setup,system='forward')
+        nsnaps = setting["snapshots"]
+        factor  = mt.ceil(nt/nsnaps) + 1
+        time_subsampled = ConditionalDimension('t_sub', parent=grid.time_dim, factor=factor)
+        usave = TimeFunction(name='usave', grid=grid, time_order=2, space_order=2,save=nsnaps, time_dim=time_subsampled)
+      
+        op_fw = solv(rec,src,self.vp,g,vector,grid,setup,system='forward', save=True, usave=usave)
         op_fw(dt=dt0)
-        return rec
+        return rec, usave.data
 
 
     #==============================================================================
@@ -695,20 +701,21 @@ class FWISolver():
 
         # Receivers Parameters
         nrec = setting["rec_n"] #receivers numbers
-
+        rec_0  = setting["pos_rec_0"]
+        rec_n  = setting["pos_rec_n"]
         recg  = Receiver(name='recg',grid=grid,npoint=nrec,time_range=self.time_range,staggered=NODE,dtype=np.float64)
-        recg.coordinates.data[:, 0] = np.linspace(setup.x0pml+100,setup.x1pml-100,nrec)
+        recg.coordinates.data[:, 0] = np.linspace(rec_0,rec_n,nrec)
         recg.coordinates.data[:, 1] = setting["recposition_z"]
 
         residual  = Receiver(name='residual',grid=grid,npoint=nrec,time_range=self.time_range,staggered=NODE,dtype=np.float64)
-        residual.coordinates.data[:, 0] = np.linspace(setup.x0pml+100,setup.x1pml-100,nrec)
+        residual.coordinates.data[:, 0] = np.linspace(rec_0,rec_n,nrec)
         residual.coordinates.data[:, 1] = setting["recposition_z"]
 
         # Source Prameters
         src = RickerSource(name='src',grid=grid,f0=setting["f0"],npoint=1,time_range=self.time_range,staggered=NODE,dtype=np.float64)
 
         # The shots start at the position 2*sd in the physical domain
-        xposf = setting["position_src"] + setting["x0"]
+        xposf = setting["position_src"] + 4000
         src.coordinates.data[:, 0] = xposf
         src.coordinates.data[:, 1] = setting["shotposition_z"] 
 
@@ -777,7 +784,7 @@ class FWISolver():
         else:
            
             # Forward solver -- Wrapper
-            op_fw_guess = solv(recg, src, vp_guess,g,vector,grid,setup,system='forward',save=True, usave=usave) 
+            op_fw_guess = solv(recg, src, vp_guess,g,vector,grid,setup,system='forward') 
             
             # Adjoint-based gradient solver -- Wrapper
             op_bw = solv(residual, src, vp_guess,g,vector_adj,grid,setup,system='adjoint',vsave=vsave)

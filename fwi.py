@@ -31,9 +31,9 @@ if (__name__=='__main__'):
     sys.path.insert(0, './code')
     from   timeit import default_timer as timer
     import solver, domain2D, utils, velmodel
-    # from   plots  import plotgrad, graph2drec, graph2d, graph2dvel, graph2dvel2
-    # from   plots  import graphobjv, graph2drecres, graph2dvelfull, graph2dadj
-    # from   plots  import graph2sdif_forward, graph2sdif_adjoint
+    from   plots  import plotgrad, graph2drec, graph2d, graph2dvel, graph2dvel2
+    from   plots  import graphobjv, graph2drecres
+    from   plots  import graph2sdif, graph2drecdif
     #==============================================================================
 
     #==============================================================================
@@ -166,12 +166,12 @@ if (__name__=='__main__'):
         fwisolver.vp_guess(m0)
         vp_guess = fwisolver.vp_g
         
-        usave, vsave  = fwisolver.apply(sn)
+        vsave, receivers_field = fwisolver.apply(sn)
     
         # np.save('data_save/objvr',objvr)
         # np.save('data_save/vres',vres)
           
-        return  vsave.data
+        return  vsave.data, receivers_field
     #==============================================================================    
 
     #==============================================================================
@@ -196,9 +196,11 @@ if (__name__=='__main__'):
     #==============================================================================
     # Save Options
     #==============================================================================
-    vsave = shots(m0)
-    # np.save('data_save/fwd_damp',usave)
-    # np.save('data_save/adj_damp',vsave)
+    vsave, receivers_field = shots(m0)
+    uforward_position = setting['snapshots'] - 1 
+    uadjoint_position =  1
+    uforward = usave[uforward_position]
+    uadjoint = vsave[uadjoint_position]
     #usave = forward solution
     #vsave = adjoint solution
     #==============================================================================
@@ -206,22 +208,23 @@ if (__name__=='__main__'):
     #==============================================================================
     # Plot Results
     #==============================================================================    
-    #V1 = graph2dvel(vel,setup)
-    #V2 = graph2dvelfull(vel,setup)
-    #P3 = graph2d(usave[9],setup)
-    #P4 = graph2dadj(vsave[1],setup)
+    #V1 = graph2dvel(vel,0,setup)
+    #V2 = graph2dvel(vel,1,setup)
+    #P3 = graph2d(uforward,0,setup)
+    #P4 = graph2d(uadjoint,1,setup)
+    #R1 = graph2drec(receivers_field,1,setup)
     #==============================================================================
 
     #==============================================================================
     # Save Results
     #==============================================================================
-    # if(model['vp']=='Marmousi_Reference'):
+    if(model['vp']=='Marmousi_Reference'):
 
-    #     S1 = utils.datasave(usave[9],vsave[1],setup,1)
+        S1 = utils.datasave(uforward,uadjoint,receivers_field,setup,1)
         
-    # else:
+    else:
         
-    #     S1 = utils.datasave(usave[9],vsave[1],setup,0)
+        S1 = utils.datasave(uforward,uadjoint,receivers_field,setup,0)
     #==============================================================================
     
     #==============================================================================
@@ -229,6 +232,7 @@ if (__name__=='__main__'):
     #==============================================================================
     # if(model['vp']!='Marmousi_Reference'):
 
-    #     C1 = graph2sdif_forward(setup)
-    #     C2 = graph2sdif_adjoint(setup)
+        C1 = graph2sdif(0,setup)
+        C2 = graph2sdif(1,setup)
+        C3 = graph2drecdif(setup)
     #==============================================================================

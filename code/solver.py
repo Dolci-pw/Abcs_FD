@@ -678,7 +678,7 @@ class FWISolver():
         src = RickerSource(name='src',grid=grid,f0=setting["f0"],npoint=1,time_range=self.time_range,staggered=NODE,dtype=np.float64)
 
         # The shots start at the position sd in the physical domain
-        xposf = setting["position_src"] + 4000 
+        xposf = setting["position_src"] + setting["x0"] 
         src.coordinates.data[:, 0] = xposf
         src.coordinates.data[:, 1] = setting["shotposition_z"]
         
@@ -709,8 +709,8 @@ class FWISolver():
       
         op_fw = solv(rec,src,self.vp,g,vector,grid,setup,system='forward', save=True, usave=usave)
         op_fw(dt=dt0)
+        
         return rec, usave.data
-
 #==============================================================================
 # FWI Function
 #==============================================================================    
@@ -759,7 +759,7 @@ class FWISolver():
         src = RickerSource(name='src',grid=grid,f0=setting["f0"],npoint=1,time_range=self.time_range,staggered=NODE,dtype=np.float64)
 
         # The shots start at the position 2*sd in the physical domain
-        xposf = setting["position_src"] + 4000
+        xposf = setting["position_src"] + setting["x0"] 
         src.coordinates.data[:, 0] = xposf
         src.coordinates.data[:, 1] = setting["shotposition_z"] 
 

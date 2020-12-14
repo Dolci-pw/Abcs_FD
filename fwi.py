@@ -84,14 +84,14 @@ if (__name__=='__main__'):
     
     elif(model['vp']=='Marmousi'):
     
-        with segyio.open('VelModelFiles/Mar2_Vp_1.25m.segy') as segyfile:
+        with segyio.open('VelModelFiles/marmousi_perfil1.segy') as segyfile:
             vp_file = segyio.tools.cube(segyfile)[0,:,:]
         
         vp, v0 = velmodel.SetVel(model,setup, setting,grid,vp_file=vp_file)
         
     elif(model['vp']=='Marmousi_Reference'):
     
-        with segyio.open('VelModelFiles/Mar2_Vp_1.25m.segy') as segyfile:
+        with segyio.open('VelModelFiles/marmousi_perfil1.segy') as segyfile:
             vp_file = segyio.tools.cube(segyfile)[0,:,:]
         
         vp, v0 = velmodel.SetVel(model,setup, setting,grid,vp_file=vp_file)
@@ -190,7 +190,6 @@ if (__name__=='__main__'):
     vmax   = np.amax(v0)
     vmin   = np.amin(v0)
     vel    = v0
-   
     #==============================================================================
 
     #==============================================================================

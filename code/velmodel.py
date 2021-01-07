@@ -443,21 +443,38 @@ def CircleIsot(setup,abcs,r,vp_circle=3.0,vp_background=2.5):
 #==============================================================================
 def SetVel(model,setup,setting,grid, **kwargs):
     (x, z)  = grid.dimensions
+    
     if model['vp']=='Circle':
         vp_circle      = kwargs.get('vp_circle')
         vp_background  = kwargs.get('vp_background')
         r              = kwargs.get('r')
         v0             = CircleIsot(setup,setting["Abcs"],r,vp_circle,vp_background)
-    elif model['vp']=='Marmousi':
+        
+    elif (model['vp']=='Marmousi' or model['vp']=='Marmousi_Reference'):
         vp_file = kwargs.get('vp_file')
         v0      = MarmoVelModel(setup, vp_file, setting["Abcs"])
-    elif model['vp']=='Marmousi_Reference':
+    
+    elif(model['vp']=='Marmousi1' or model['vp']=='Marmousi10'):
         vp_file = kwargs.get('vp_file')
-        v0      = MarmoVelModel(setup, vp_file, setting["Abcs"])    
-    elif model['vp']=='GM':
+        v0      = MarmoVelModel(setup, vp_file, setting["Abcs"])
+   
+    elif(model['vp']=='Marmousi2' or model['vp']=='Marmousi20'):
+        vp_file = kwargs.get('vp_file')
+        v0      = MarmoVelModel(setup, vp_file, setting["Abcs"])
+ 
+    elif(model['vp']=='Marmousi3' or model['vp']=='Marmousi30'):
+        vp_file = kwargs.get('vp_file')
+        v0      = MarmoVelModel(setup, vp_file, setting["Abcs"])
+ 
+    elif(model['vp']=='Marmousi4' or model['vp']=='Marmousi40'):
+        vp_file = kwargs.get('vp_file')
+        v0      = MarmoVelModel(setup, vp_file, setting["Abcs"])
+    
+    elif(model['vp']=='GM'):
         vp_file = kwargs.get('vp_file')
         v0      = GMVelModel(setup, vp_file, setting["Abcs"])
-    elif model['vp']=='GMnew':  
+    
+    elif(model['vp']=='GMnew'):  
         vp_file = kwargs.get('vp_file')
         v0      = GMVelModelnew(setup, vp_file, setting["Abcs"])
 

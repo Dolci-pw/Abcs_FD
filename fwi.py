@@ -12,7 +12,7 @@ if (__name__=='__main__'):
     from   numpy             import linalg              as la
     from   scipy.ndimage     import gaussian_filter
     from   scipy             import optimize
-    from dask.distributed    import Client, wait
+    from   dask.distributed  import Client, wait
     #==============================================================================
 
     #==============================================================================
@@ -27,7 +27,7 @@ if (__name__=='__main__'):
     #==============================================================================
     # Our Imports
     #==============================================================================
-    import settings_config
+    import settings_config, settings_config_refinamento 
     sys.path.insert(0, './code')
     from   timeit import default_timer as timer
     import solver, domain2D, utils, velmodel
@@ -43,7 +43,8 @@ if (__name__=='__main__'):
     #==============================================================================
     # Model Properties
     #==============================================================================    
-    model=settings_config.settings.model
+    #model = settings_config.settings.model
+    model = settings_config_refinamento.settings.model
     #==============================================================================
     
     #==============================================================================
@@ -64,7 +65,39 @@ if (__name__=='__main__'):
     elif(model['vp']=='GM'):
     
         setting = settings_config.settings.setting3
-
+        
+    elif(model['vp']=='Marmousi1'):
+    
+        setting = settings_config_refinamento.settings.setting1
+        
+    elif(model['vp']=='Marmousi10'):
+    
+        setting = settings_config_refinamento.settings.setting10
+    
+    elif(model['vp']=='Marmousi2'):
+    
+        setting = settings_config_refinamento.settings.setting2
+        
+    elif(model['vp']=='Marmousi20'):
+    
+        setting = settings_config_refinamento.settings.setting20
+    
+    elif(model['vp']=='Marmousi3'):
+    
+        setting = settings_config_refinamento.settings.setting3
+        
+    elif(model['vp']=='Marmousi30'):
+    
+        setting = settings_config_refinamento.settings.setting30
+    
+    elif(model['vp']=='Marmousi4'):
+    
+        setting = settings_config_refinamento.settings.setting4
+        
+    elif(model['vp']=='Marmousi40'):
+    
+        setting = settings_config_refinamento.settings.setting40
+    
     setup   = utils.ProblemSetup(setting)
     #==============================================================================
     
@@ -81,21 +114,42 @@ if (__name__=='__main__'):
     if(model['vp']=='Circle'):
         
         vp, v0 = velmodel.SetVel(model,setup, setting,grid,vp_circle=3, vp_background=2.5,r=75)
+
+    elif(model['vp']=='Marmousi1' or model['vp']=='Marmousi10'):
     
-    elif(model['vp']=='Marmousi'):
+        with segyio.open('VelModelFiles/marmousi_perfil1.segy') as segyfile:
+            vp_file = segyio.tools.cube(segyfile)[0,:,:]
+        
+        vp, v0 = velmodel.SetVel(model,setup,setting,grid,vp_file=vp_file)
+  
+    elif(model['vp']=='Marmousi2' or model['vp']=='Marmousi20'):
+    
+        with segyio.open('VelModelFiles/marmousi_perfil1.segy') as segyfile:
+            vp_file = segyio.tools.cube(segyfile)[0,:,:]
+        
+        vp, v0 = velmodel.SetVel(model,setup,setting,grid,vp_file=vp_file)
+  
+    elif(model['vp']=='Marmousi3' or model['vp']=='Marmousi30'):
+    
+        with segyio.open('VelModelFiles/marmousi_perfil1.segy') as segyfile:
+            vp_file = segyio.tools.cube(segyfile)[0,:,:]
+        
+        vp, v0 = velmodel.SetVel(model,setup,setting,grid,vp_file=vp_file)
+  
+    elif(model['vp']=='Marmousi4' or model['vp']=='Marmousi40'):
+    
+        with segyio.open('VelModelFiles/marmousi_perfil1.segy') as segyfile:
+            vp_file = segyio.tools.cube(segyfile)[0,:,:]
+        
+        vp, v0 = velmodel.SetVel(model,setup,setting,grid,vp_file=vp_file)
+    
+    elif(model['vp']=='Marmousi' or model['vp']=='Marmousi_Reference'):
     
         with segyio.open('VelModelFiles/marmousi_perfil1.segy') as segyfile:
             vp_file = segyio.tools.cube(segyfile)[0,:,:]
         
         vp, v0 = velmodel.SetVel(model,setup, setting,grid,vp_file=vp_file)
         
-    elif(model['vp']=='Marmousi_Reference'):
-    
-        with segyio.open('VelModelFiles/marmousi_perfil1.segy') as segyfile:
-            vp_file = segyio.tools.cube(segyfile)[0,:,:]
-        
-        vp, v0 = velmodel.SetVel(model,setup, setting,grid,vp_file=vp_file)
-    
     elif(model['vp']=='GM'):
     
         vp_file = np.fromfile('VelModelFiles/gm_perfil1.bin',dtype='float32')
@@ -185,7 +239,27 @@ if (__name__=='__main__'):
     
         sigma  = 15 
         vini   = gaussian_filter(v0,sigma=sigma)
+    
+    elif(model['vp']=='Marmousi1' or model['vp']=='Marmousi10'):
+    
+        sigma  = 15 
+        vini   = gaussian_filter(v0,sigma=sigma)
 
+    elif(model['vp']=='Marmousi2' or model['vp']=='Marmousi20'):
+    
+        sigma  = 15 
+        vini   = gaussian_filter(v0,sigma=sigma)
+   
+    elif(model['vp']=='Marmousi3' or model['vp']=='Marmousi30'):
+    
+        sigma  = 15 
+        vini   = gaussian_filter(v0,sigma=sigma)
+
+    elif(model['vp']=='Marmousi4' or model['vp']=='Marmousi40'):
+    
+        sigma  = 15 
+        vini   = gaussian_filter(v0,sigma=sigma)
+        
     m0     = np.reshape(vini,-1)
     vmax   = np.amax(v0)
     vmin   = np.amin(v0)
@@ -207,17 +281,17 @@ if (__name__=='__main__'):
     #==============================================================================
     # Plot Results
     #==============================================================================    
-    #V1 = graph2dvel(vel,0,setup)
-    #V2 = graph2dvel(vel,1,setup)
-    #P3 = graph2d(uforward,0,setup)
-    #P4 = graph2d(uadjoint,1,setup)
-    #R1 = graph2drec(receivers_field,1,setup)
+    V1 = graph2dvel(vel,0,setup)
+    V2 = graph2dvel(vel,1,setup)
+    P3 = graph2d(uforward,0,setup)
+    P4 = graph2d(uadjoint,1,setup)
+    R1 = graph2drec(receivers_field,1,setup)
     #==============================================================================
 
     #==============================================================================
     # Save Results
     #==============================================================================
-    if(model['vp']=='Marmousi_Reference'):
+    if(model['vp']=='Marmousi' or model['vp']=='Marmousi10' or model['vp']=='Marmousi20' or model['vp']=='Marmousi30' or model['vp']=='Marmousi40'):
 
         S1 = utils.datasave(uforward,uadjoint,receivers_field,setup,1)
         
@@ -229,7 +303,7 @@ if (__name__=='__main__'):
     #==============================================================================
     # Comparative Results
     #==============================================================================
-    # if(model['vp']!='Marmousi_Reference'):
+    if(model['vp']=='Marmousi' or model['vp']=='Marmousi1' or model['vp']=='Marmousi2' or model['vp']=='Marmousi3' or model['vp']=='Marmousi4'):
 
         C1 = graph2sdif(0,setup)
         C2 = graph2sdif(1,setup)

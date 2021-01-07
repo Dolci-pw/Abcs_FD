@@ -81,7 +81,7 @@ def graph2sdif(i,setup):
     
     x0pml = setup.x0pml
     x1pml = setup.x1pml
-    z0pml = setup.z0
+    z0pml = setup.z0pml
     z1pml = setup.z1pml
     npmlx = setup.npmlx
     npmlz = setup.npmlz

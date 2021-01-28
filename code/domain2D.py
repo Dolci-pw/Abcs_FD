@@ -29,7 +29,7 @@ class leftExtension(SubDomain):
     name = 'd1'
     def define(self, dimensions):
         x, z = dimensions
-        return {x: ('left',self.npmlx), z: z}
+        return {x: ('left',self.npmlx), z: ('middle', 0, self.npmlz)}
 #==============================================================================
 
 #==============================================================================
@@ -42,7 +42,7 @@ class rightExtension(SubDomain):
     name = 'd2'
     def define(self, dimensions):
         x, z = dimensions
-        return {x: ('right',self.npmlx), z: z}
+        return {x: ('right',self.npmlx), z: ('middle', 0, self.npmlz)}
 #==============================================================================
 
 #==============================================================================
@@ -55,7 +55,7 @@ class bottomExtension(SubDomain):
     name = 'd3'
     def define(self, dimensions):
         x, z = dimensions
-        return {x: ('middle', self.npmlx, self.npmlx), z: ('right',self.npmlz)}
+        return {x: ('middle', -self.npmlx, self.npmlx), z: ('right',self.npmlz)}
 #==============================================================================
 
 #==============================================================================

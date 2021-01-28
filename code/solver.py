@@ -264,6 +264,7 @@ class solverABCs():
                 op = Operator([stencil0] + src_term + [stencil01,stencil3,stencil02,stencil2,stencil1] + bc + bc1 + rec_term,subs=grid.spacing_map)
 
         if(system=='forward' and setup.Abcs=='Higdon'):
+            
             stencil0  = Eq(u.forward, solve(pde0,u.forward))
             stencil01 = [Eq(u1,u.backward),Eq(u2,u),Eq(u3,u.forward)]
             stencil02 = [Eq(u3,u.forward)]

@@ -55,7 +55,7 @@ class bottomExtension(SubDomain):
     name = 'd3'
     def define(self, dimensions):
         x, z = dimensions
-        return {x: ('middle', -self.npmlx, self.npmlx), z: ('right',self.npmlz)}
+        return {x: ('middle', self.npmlx, self.npmlx), z: ('right',self.npmlz)}
 #==============================================================================
 
 #==============================================================================

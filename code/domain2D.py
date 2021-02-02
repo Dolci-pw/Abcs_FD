@@ -10,7 +10,7 @@ import numpy                   as np
 # Subdomain D0
 #==============================================================================
 class physdomain(SubDomain):
-    def __init__(self, npmlx,npmlz):    
+    def __init__(self, npmlx,npmlz):
         self.npmlx=npmlx
         self.npmlz=npmlz
     name = 'd0'
@@ -23,39 +23,37 @@ class physdomain(SubDomain):
 # Subdomain D1
 #==============================================================================
 class leftExtension(SubDomain):
-    def __init__(self, npmlx,npmlz):    
+    def __init__(self, npmlx,npmlz):
         self.npmlx=npmlx
         self.npmlz=npmlz
     name = 'd1'
     def define(self, dimensions):
         x, z = dimensions
-        return {x: ('left',self.npmlx), z: ('middle', 0, self.npmlz)}
+        return {x: ('left',self.npmlx), z: z}
 #==============================================================================
 
 #==============================================================================
 # Subdomain D2
 #==============================================================================
 class rightExtension(SubDomain):
-    def __init__(self, npmlx,npmlz):    
+    def __init__(self, npmlx,npmlz):
         self.npmlx=npmlx
         self.npmlz=npmlz
     name = 'd2'
     def define(self, dimensions):
         x, z = dimensions
-        return {x: ('right',self.npmlx), z: ('middle', 0, self.npmlz)}
-#==============================================================================
-
+        return {x: ('right',self.npmlx), z: z}
 #==============================================================================
 # Subdomain D3
 #==============================================================================
 class bottomExtension(SubDomain):
-    def __init__(self, npmlx,npmlz):    
+    def __init__(self, npmlx,npmlz):
         self.npmlx=npmlx
         self.npmlz=npmlz
     name = 'd3'
     def define(self, dimensions):
         x, z = dimensions
-        return {x: ('middle', self.npmlx, self.npmlx), z: ('right',self.npmlz)}
+        return {x: x, z: ('right',self.npmlz)}
 #==============================================================================
 
 #==============================================================================

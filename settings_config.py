@@ -35,7 +35,8 @@ class settings:
         "habcw": 2,            # 1=linear , 2=nonlinear weight (used in habc-a1)
         "snapshots": 10,       # wave equation solution snapshots to be saved
         "multiscale": True,    # Frequency multiscale: True or False
-         "freq_bands": [2, 5, 8]  # frequence band
+        "freq_bands": [2, 5, 8]  # frequence band
+        "Wavelet_filter": True   # True or False
         }
 #==============================================================================
 
@@ -64,7 +65,8 @@ class settings:
         "habcw": 2,            # 1=linear , 2=nonlinear weight (used in habc-a1)
         "snapshots": 10,       # wave equation solution snapshots to be saved
         "multiscale": True,    # Frequency multiscale: True or False
-         "freq_bands": [2, 5, 8]  # frequence band
+        "freq_bands": [2, 5, 8],  # frequence band
+        "Wavelet_filter": True   # True or False
         }
 #==============================================================================
 
@@ -133,7 +135,8 @@ class settings:
         "shots_dist": 1.25,    # distance between the shots in metters
         "snapshots": 10,       # wave equation solution snapshots to be saved
         "multiscale": True,    # Frequency multiscale: True or False
-         "freq_bands": [2, 5, 8]  # frequence band
+        "freq_bands": [2, 5, 8],  # frequence band
+        "Wavelet_filter": True   # True or False
         }   
 #==============================================================================
 

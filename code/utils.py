@@ -353,9 +353,7 @@ def butter_lowpass_filter(shot, cutoff, fs, order=1):
     b, a = butter(order, normal_cutoff, btype="low", analog=False)
     
     nc, nr = np.shape(shot)
-    # from scipy import signal
-    # sos           = signal.butter(1, cutoff, btype='lowpass', fs=fs, output='sos')
-    
+
     for rec in range(nr):
         shot[:,rec] = filtfilt(b, a, shot[:,rec])
 
@@ -371,11 +369,7 @@ def wavelet(rec, n, w, keep):
         input_path: seismogram path
         output_path: path to save wavelets   
     '''
-    # for sn in range(0,17):
-    #     print(sn)
-    #     filename = str(input_path) + "/rec_" + str(sn) + ".npy"
-    #     print(filename)
-    #     rec = np.load(filename)
+
     coeffs = pywt.wavedec2(rec,wavelet=w,level=n)
     coeff_arr, coeff_slices = pywt.coeffs_to_array(coeffs)
     Csort = np.sort(np.abs(coeff_arr.reshape(-1)))

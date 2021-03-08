@@ -316,12 +316,13 @@ def MarmoVelModel(setup,vp,abc):
     z0    = setup.z0
     z1    = setup.z1
 
-    nptxvel =  2000
-    nptzvel =  2000
-    x0vel   =  -250.        
-    x1vel   =  2200.     
-    z0vel   = -250.        
-    z1vel   = 2200.
+    nptxvel =  len(vp[:])
+    nptzvel =  len(vp[0,:])
+    
+    x0vel   =  0        
+    x1vel   =  17000     
+    z0vel   =  0       
+    z1vel   =  3500.
 
     Xvel    = np.linspace(x0vel,x1vel,nptxvel)
     Zvel    = np.linspace(z0vel,z1vel,nptzvel)
@@ -337,7 +338,7 @@ def MarmoVelModel(setup,vp,abc):
     for j in range(nptzvel):
         x  = Xvel
         z  = vp[0:nptxvel,j]
-        cs = interp1d(x,z,kind='linear')
+        cs = interp1d(x,z,kind='linear',fill_value="extrapolate")
         xs = X0
         C0x[0:nptx,j] = cs(xs)
     
@@ -346,7 +347,7 @@ def MarmoVelModel(setup,vp,abc):
     for i in range(nptx):
         x  = Zvel
         z  = C0x[i,0:nptzvel]
-        cs = interp1d(x,z,kind='linear')
+        cs = interp1d(x,z,kind='linear',fill_value="extrapolate")
         xs = Z0
         v0[i,0:nptz] = cs(xs)
 
@@ -362,14 +363,15 @@ def MarmoVelModel(setup,vp,abc):
         for j in range(nptzvel):
             x = Xvel
             z = vp[0:nptxvel,j]
-            cs = interp1d(x,z,kind='linear')
+            cs = interp1d(x,z,kind='linear',fill_value="extrapolate")
+
             xs = X1
             C11x[0:nptx-1,j] = cs(xs)
             
         for i in range(nptx-1):
             x  = Zvel
             z  = C11x[i,0:nptzvel]
-            cs = interp1d(x,z,kind='linear')
+            cs = interp1d(x,z,kind='linear', fill_value="extrapolate")
             xs = Z1
             v1[i,0:nptz-1] = cs(xs)
 

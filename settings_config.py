@@ -34,6 +34,8 @@ class settings:
         "rec_n": 100,          # Receiver number
         "habcw": 2,            # 1=linear , 2=nonlinear weight (used in habc-a1)
         "snapshots": 10,       # wave equation solution snapshots to be saved
+        "multiscale": True,    # Frequency multiscale: True or False
+         "freq_bands": [2, 5, 8]  # frequence band
         }
 #==============================================================================
 
@@ -61,6 +63,8 @@ class settings:
         "rec_n": 376,          # Receiver number
         "habcw": 2,            # 1=linear , 2=nonlinear weight (used in habc-a1)
         "snapshots": 10,       # wave equation solution snapshots to be saved
+        "multiscale": True,    # Frequency multiscale: True or False
+         "freq_bands": [2, 5, 8]  # frequence band
         }
 #==============================================================================
 
@@ -88,14 +92,17 @@ class settings:
         "rec_n": 300,           # Receiver number
         "habcw": 2,             # 1=linear , 2=nonlinear weight (used in habc-a1)
         "jump": 1,              # Jump to save the wave equation solution to be used in adjoint-based gradient
-        "shots_dist":1000,       # distance between the shots in metters
+        "shots_dist":1000,      # distance between the shots in metters
         "USE_GPU_DASK": False,  # True or False
         "threads_per_worker": 1,
-        "memory": 70.,          # Restart DASK cluster when more than X% of memory is used
-        "dask": True,           # This variable change if you start the DASK cluster
+        "memory": 70.,           # Restart DASK cluster when more than X% of memory is used
+        "dask": True,            # This variable change if you start the DASK cluster
         "death_timeout": 800,    
-        "checkpointing":True,   # True or False
+        "checkpointing":True,    # True or False
         "n_checkpointing": None, # None or an int value n<timestep
+        "multiscale": True,      # Frequency multiscale: True or False
+        "freq_bands": [2, 5, 8], # frequence band
+        "Wavelet_filter": True   # True or False
         }
 #==============================================================================
 
@@ -125,6 +132,8 @@ class settings:
         "jump": 2,             # Jump to save the wave equation solution to be used in adjoint-based gradient
         "shots_dist": 1.25,    # distance between the shots in metters
         "snapshots": 10,       # wave equation solution snapshots to be saved
+        "multiscale": True,    # Frequency multiscale: True or False
+         "freq_bands": [2, 5, 8]  # frequence band
         }   
 #==============================================================================
 
@@ -161,6 +170,9 @@ class settings:
         "death_timeout": 800,    
         "checkpointing":True,   # True or False
         "n_checkpointing": 400, # None or an int value n<timestep
+        "multiscale": True,     # Frequency multiscale: True or False
+        "freq_bands": [2, 5, 8],  # frequence band
+        "Wavelet_filter": True  # True or False
         }
        
 #==============================================================================
@@ -179,7 +191,7 @@ class settings:
         "lenz": 500,            # z-axis lenght (metters)
         "t0": 0.,               # initial time
         "tn": 500,              # final time milliseconds
-        "f0" : 0.005,           # frequency peak kHz
+        "f0" : 0.015,           # frequency peak kHz
         "Abcs": 'Higdon',         # Abcs methods, options=damping, pml, cpml, habc-a1, Higdon
         "shotposition_z":30,    # shot position from the z0 (metters)
         "recposition_z": 20,    # Receiver position from the z0 (metters)
@@ -190,10 +202,13 @@ class settings:
         "USE_GPU_DASK": False,  # True or False
         "threads_per_worker": 1,
         "memory": 70.,          # Restart DASK cluster when more than X% of memory is used
-        "dask": False,           # This variable change if you start the DASK cluster
+        "dask": False,          # This variable change if you start the DASK cluster
         "death_timeout": 800,    
-        "checkpointing":False,   # True or False
-        "n_checkpointing": 20, # None or an int value n<timestep
+        "checkpointing":False,  # True or False
+        "n_checkpointing": 20,  # None or an int value n<timestep
+        "multiscale": True,     # Frequency multiscale: True or False
+        "freq_bands": [2, 5, 8], # frequence band
+        "Wavelet_filter": True  # True or False
         }
 #==============================================================================
 #==============================================================================
@@ -227,6 +242,9 @@ class settings:
         "death_timeout": 800,    
         "checkpointing":False,  # True or False
         "n_checkpointing": 400, # None or an int value n<timestep
+        "multiscale": True,     # Frequency multiscale: True or False
+        "freq_bands": [2, 5, 8],  # frequence band
+        "Wavelet_filter": True  # True or False
         }
        
 #==============================================================================

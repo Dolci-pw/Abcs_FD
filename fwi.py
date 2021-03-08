@@ -247,7 +247,6 @@ if (__name__=='__main__'):
         sigma  = 20 
         vini   = gaussian_filter(v0,sigma=sigma)
 
-    m0     = np.reshape(vini,-1)
     vmax   = np.amax(v0)
     vmin   = np.amin(v0)
     vel    = v0
@@ -256,10 +255,45 @@ if (__name__=='__main__'):
     #==============================================================================
     # FWI Interactions
     #==============================================================================
-    bounds = [(vmin,vmax) for _ in range(len(m0))] 
-
     start   = tm.time()
-    result  = optimize.minimize(shots, m0, method='L-BFGS-B', jac=True, tol = 1e-4, bounds=bounds, options={"disp": True,"eps": 1e-4, "gtol": 1e-4,"maxiter": 20})
+
+    if setting['multiscale']:
+        freq_bands = setting['freq_bands']
+        for freq in freq_bands:
+            rec_f  = []
+            for sn in range(0, nshots):
+                
+                utils.butter_lowpass_filter(rec_true[sn].data, freq, 1.0/(dt0),order=1)
+                
+                if setting['Wavelet_filter']:
+                    aux = utils.wavelet(rec_true[sn].data, 2, 'db1', 0.2)  
+                    rec_f.append(aux)
+                else:
+                    rec_f.append(rec_true[sn].data)
+
+            fwisolver.rec_true = rec_f
+            fwisolver.freq     = freq
+
+            m0     = np.reshape(vini,-1) 
+            bounds = [(vmin,vmax) for _ in range(len(m0))] 
+            result  = optimize.minimize(shots, m0,method='L-BFGS-B', jac=True, tol = 1e-4, bounds=bounds, options={"disp": True,"eps": 1e-4, "gtol": 1e-4,"maxiter": 20})
+            vini = result.x
+
+    else:
+        rec_f  = []
+        for sn in range(0, nshots):
+            if setting['Wavelet_filter']:  
+                aux = utils.wavelet(rec_true[sn].data, 2, 'db1', 0.2)  
+                rec_f.append(aux)
+            else:
+                rec_f.append(rec_true[sn].data)
+
+
+        fwisolver.rec_true = rec_f
+        m0     = np.reshape(vini,-1)
+        bounds = [(vmin,vmax) for _ in range(len(m0))]
+        result  = optimize.minimize(shots, m0, method='L-BFGS-B', jac=True, tol = 1e-4, bounds=bounds, options={"gtol": 1e-2,"maxiter": 200})
+       
     end     = tm.time()
 
     vobj    = np.zeros((cont,3)) 

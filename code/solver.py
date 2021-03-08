@@ -4,6 +4,8 @@
 import numpy as np
 import math  as mt
 from   pyrevolve import Revolver
+from   scipy.signal            import butter, filtfilt
+import matplotlib.pyplot      as plt
 #==============================================================================
 
 #==============================================================================
@@ -14,6 +16,7 @@ from   examples.seismic import RickerSource
 from   examples.seismic import Receiver
 from   examples.checkpointing.checkpoint import DevitoCheckpoint, CheckpointOperator
 
+import utils
 #==============================================================================
 
 #==============================================================================
@@ -71,7 +74,7 @@ class solverABCs():
 
             bc  = [Eq(u[t-1,0,z],0.),Eq(u[t-1,nptx-1,z],0.),Eq(u[t-1,x,nptz-1],0.)]
             bc1 = [Eq(u[t-1,x,-k],u[t-1,x,k]) for k in range(1,int(setup.sou/2)+1)]
-            src_term = src.interpolate(expr=u)
+            # src_term = src.interpolate(expr=u)
             rec_term = rec.inject(field=u.backward, expr=rec* dt**2*vp**2)
             grad_update = Eq(grad, grad - usave * u.dt2)
             op  = Operator([stencil0, stencil1] + bc + bc1 + rec_term + [grad_update],subs=grid.spacing_map)             
@@ -182,7 +185,7 @@ class solverABCs():
 
             bc  = [Eq(u[t-1,0,z],0.),Eq(u[t-1,nptx-1,z],0.),Eq(u[t-1,x,nptz-1],0.)]
             bc1 = [Eq(u[t-1,x,-k],u[t-1,x,k]) for k in range(1,int(setup.sou/2)+1)]          
-            source_a = src.interpolate(expr=u)
+            # source_a = src.interpolate(expr=u)
             receivers   = rec.inject(field=u.backward, expr=rec*dt**2*vp[0]**2)
             grad_update = Eq(grad, grad - usave * u.dt2)
             op = Operator([stencil01,stencil02] + bc + bc1 + [stencil1, stencil2] + receivers + [grad_update],subs=grid.spacing_map)
@@ -395,44 +398,97 @@ class solverABCs():
             grad  = kwargs.get('grad')
             usave = kwargs.get('usave')
 
-            stencil01 = [Eq(u1,u.backward),Eq(u2,u),Eq(u3,u.backward)]
-            stencil02 = [Eq(u3,u.backward)]  
+            pde1 = Eq(u.dt2 - u.laplace*vp*vp)
+
             stencil0  = Eq(u.backward, solve(pde0,u.backward))
+            stencil01 = [Eq(u1,u.forward),Eq(u2,u),Eq(u3,u.backward)]
+            stencil02 = [Eq(u3,u.backward)]
+            
             alpha1 = 0.0
             alpha2 = np.pi/4
-            coef1  =  np.cos(alpha1)*np.cos(alpha2)
-            coef2  =  np.cos(alpha1) + np.cos(alpha2)
+            a1 = 0.5
+            b1 = 0.5
+            a2 = 0.5
+            b2 = 0.5
 
             # Região B_{1}
-            cte11 =  coef1*(1/(2*dt**2)) + coef2*(1/(2*dt*hx))*vp[x,z]
-            cte21 = -coef1*(1/(2*dt**2)) + coef2*(1/(2*dt*hx))*vp[x,z] - (1/(2*hz**2))*vp[x,z]*vp[x,z] 
-            cte31 = -coef1*(1/(2*dt**2)) - coef2*(1/(2*dt*hx))*vp[x,z]
-            cte41 =  coef1*(1/(dt**2))
-            cte51 =  (1/(4*hz**2))*vp[x,z]*vp[x,z]
+            gama111 = np.cos(alpha1)*(1-a1)*(1/dt)
+            gama121 = np.cos(alpha1)*(a1)*(1/dt)
+            gama131 = np.cos(alpha1)*(1-b1)*(1/hx)*vp[x,z]
+            gama141 = np.cos(alpha1)*(b1)*(1/hx)*vp[x,z]
+                    
+            gama211 = np.cos(alpha2)*(1-a2)*(1/dt)
+            gama221 = np.cos(alpha2)*(a2)*(1/dt)
+            gama231 = np.cos(alpha2)*(1-b2)*(1/hx)*vp[x,z]
+            gama241 = np.cos(alpha2)*(b2)*(1/hx)*vp[x,z]
+            
+            c111 =  gama111 + gama131
+            c121 = -gama111 + gama141
+            c131 =  gama121 - gama131
+            c141 = -gama121 - gama141
+                    
+            c211 =  gama211 + gama231
+            c221 = -gama211 + gama241
+            c231 =  gama221 - gama231
+            c241 = -gama221 - gama241
 
-            aux1      = (cte21*(u3[x+1,z] + u1[x,z]) + cte31*u1[x+1,z] + cte41*(u2[x,z]+u2[x+1,z]) + cte51*(u3[x+1,z+1] + u3[x+1,z-1] + u1[x,z+1] + u1[x,z-1]))/cte11
+            aux1      = ( u2[x,z]*(-c111*c221-c121*c211) + u3[x+1,z]*(-c111*c231-c131*c211) + u2[x+1,z]*(-c111*c241-c121*c231-c141*c211-c131*c221) 
+                      + u1[x,z]*(-c121*c221) + u1[x+1,z]*(-c121*c241-c141*c221) + u3[x+2,z]*(-c131*c231) +u2[x+2,z]*(-c131*c241-c141*c231)
+                      + u1[x+2,z]*(-c141*c241))/(c111*c211)
             pde1      = (1-pesosx[x,z])*u3[x,z] + pesosx[x,z]*aux1
             stencil1  = Eq(u.backward,pde1,subdomain = grid.subdomains['d1'])
-            
+
             # Região B_{3}
-            cte12 =  coef1*(1/(2*dt**2)) + coef2*(1/(2*dt*hx))*vp[x,z]
-            cte22 = -coef1*(1/(2*dt**2)) + coef2*(1/(2*dt*hx))*vp[x,z] - (1/(2*hz**2))*vp[x,z]*vp[x,z] 
-            cte32 = -coef1*(1/(2*dt**2)) - coef2*(1/(2*dt*hx))*vp[x,z]
-            cte42 =  coef1*(1/(dt**2))
-            cte52 =  (1/(4*hz**2))*vp[x,z]*vp[x,z]
-  
-            aux2      = (cte22*(u3[x-1,z] + u1[x,z]) + cte32*u1[x-1,z] + cte42*(u2[x,z]+u2[x-1,z]) + cte52*(u3[x-1,z+1] + u3[x-1,z-1] + u1[x,z+1] + u1[x,z-1]))/cte12
+            gama112 = np.cos(alpha1)*(1-a1)*(1/dt)
+            gama122 = np.cos(alpha1)*(a1)*(1/dt)
+            gama132 = np.cos(alpha1)*(1-b1)*(1/hx)*vp[x,z]
+            gama142 = np.cos(alpha1)*(b1)*(1/hx)*vp[x,z]
+                    
+            gama212 = np.cos(alpha2)*(1-a2)*(1/dt)
+            gama222 = np.cos(alpha2)*(a2)*(1/dt)
+            gama232 = np.cos(alpha2)*(1-b2)*(1/hx)*vp[x,z]
+            gama242 = np.cos(alpha2)*(b2)*(1/hx)*vp[x,z]
+                    
+            c112 =  gama112 + gama132
+            c122 = -gama112 + gama142
+            c132 =  gama122 - gama132
+            c142 = -gama122 - gama142
+
+            c212 =  gama212 + gama232
+            c222 = -gama212 + gama242
+            c232 =  gama222 - gama232
+            c242 = -gama222 - gama242
+
+            aux2      = ( u2[x,z]*(-c112*c222-c122*c212) + u3[x-1,z]*(-c112*c232-c132*c212) + u2[x-1,z]*(-c112*c242-c122*c232-c142*c212-c132*c222) 
+                      + u1[x,z]*(-c122*c222) + u1[x-1,z]*(-c122*c242-c142*c222) + u3[x-2,z]*(-c132*c232) +u2[x-2,z]*(-c132*c242-c142*c232)
+                      + u1[x-2,z]*(-c142*c242))/(c112*c212)
             pde2      = (1-pesosx[x,z])*u3[x,z] + pesosx[x,z]*aux2
             stencil2  = Eq(u.backward,pde2,subdomain = grid.subdomains['d2'])
 
             # Região B_{2}
-            cte13 =  coef1*(1/(2*dt**2)) + coef2*(1/(2*dt*hz))*vp[x,z]
-            cte23 = -coef1*(1/(2*dt**2)) + coef2*(1/(2*dt*hz))*vp[x,z] - (1/(2*hx**2))*vp[x,z]*vp[x,z] 
-            cte33 = -coef1*(1/(2*dt**2)) - coef2*(1/(2*dt*hz))*vp[x,z]
-            cte43 =  coef1*(1/(dt**2))
-            cte53 =  (1/(4*hx**2))*vp[x,z]*vp[x,z]
+            gama113 = np.cos(alpha1)*(1-a1)*(1/dt)
+            gama123 = np.cos(alpha1)*(a1)*(1/dt)
+            gama133 = np.cos(alpha1)*(1-b1)*(1/hz)*vp[x,z]
+            gama143 = np.cos(alpha1)*(b1)*(1/hz)*vp[x,z]
 
-            aux3      = (cte23*(u3[x,z-1] + u1[x,z]) + cte33*u1[x,z-1] + cte43*(u2[x,z]+u2[x,z-1]) + cte53*(u3[x+1,z-1] + u3[x-1,z-1] + u1[x+1,z] + u1[x-1,z]))/cte13
+            gama213 = np.cos(alpha2)*(1-a2)*(1/dt)
+            gama223 = np.cos(alpha2)*(a2)*(1/dt)
+            gama233 = np.cos(alpha2)*(1-b2)*(1/hz)*vp[x,z]
+            gama243 = np.cos(alpha2)*(b2)*(1/hz)*vp[x,z]
+                    
+            c113 =  gama113 + gama133
+            c123 = -gama113 + gama143
+            c133 =  gama123 - gama133
+            c143 = -gama123 - gama143
+                    
+            c213 =  gama213 + gama233
+            c223 = -gama213 + gama243
+            c233 =  gama223 - gama233
+            c243 = -gama223 - gama243
+
+            aux3      = ( u2[x,z]*(-c113*c223-c123*c213) + u3[x,z-1]*(-c113*c233-c133*c213) + u2[x,z-1]*(-c113*c243-c123*c233-c143*c213-c133*c223) 
+                        + u1[x,z]*(-c123*c223) + u1[x,z-1]*(-c123*c243-c143*c223) + u3[x,z-2]*(-c133*c233) +u2[x,z-2]*(-c133*c243-c143*c233)
+                        + u1[x,z-2]*(-c143*c243))/(c113*c213)
             pde3      = (1-pesosz[x,z])*u3[x,z] + pesosz[x,z]*aux3
             stencil3  = Eq(u.backward,pde3,subdomain = grid.subdomains['d3'])
 
@@ -448,6 +504,7 @@ class solverABCs():
             assert "Invalid option"
 
         return op
+
 
     def solvecpml(rec,src,vp,geradamp,vector,grid, setup,system,save=False,**kwargs):   
         
@@ -564,8 +621,6 @@ class solverABCs():
   
         return op
     
-
-
         
 class FWISolver():
 
@@ -579,6 +634,7 @@ class FWISolver():
         self.utils    = utils
         self.vp       = vp
         self.vp_g     = 0
+        self.freq     = 0
 
         self.abc = setting["Abcs"]
         #==============================================================================
@@ -602,6 +658,7 @@ class FWISolver():
               
         elif(self.abc=='habc-a1' or self.abc=='Higdon'):
             habcw    = setting["habcw"]
+            self.gdamp    = utils.geramdamp(self.setup,v0,'damping')
             self.g        = utils.gerapesos(self.setup,habcw)
             self.solv     = solverABCs.solvehabc
     
@@ -656,15 +713,15 @@ class FWISolver():
         src.coordinates.data[:, 0] = xposf
         src.coordinates.data[:, 1] = setting["shotposition_z"]
         
-        u    = TimeFunction(name="u",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=NODE,dtype=np.float64) 
+        u    = TimeFunction(name="u",grid=grid,time_order=setup.tou,space_order=8,staggered=NODE,dtype=np.float64) 
 
         if setting["Abcs"]=='pml' or setting["Abcs"]=='cpml':
-            phi1 = TimeFunction(name="phi1",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=(x,z),dtype=np.float64)
-            phi2 = TimeFunction(name="phi2",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=(x,z),dtype=np.float64)
+            phi1 = TimeFunction(name="phi1",grid=grid,time_order=setup.tou,space_order=8,staggered=(x,z),dtype=np.float64)
+            phi2 = TimeFunction(name="phi2",grid=grid,time_order=setup.tou,space_order=8,staggered=(x,z),dtype=np.float64)
             
             if setting["Abcs"]=='cpml':
-                zeta1 = TimeFunction(name="zeta1",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=NODE,dtype=np.float64)
-                zeta2 = TimeFunction(name="zeta2",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=NODE,dtype=np.float64)
+                zeta1 = TimeFunction(name="zeta1",grid=grid,time_order=setup.tou,space_order=8,staggered=NODE,dtype=np.float64)
+                zeta2 = TimeFunction(name="zeta2",grid=grid,time_order=setup.tou,space_order=8,staggered=NODE,dtype=np.float64)
                 vector  = [u,phi1, phi2,zeta1,zeta2]
             if setting["Abcs"]=='pml':
                 vector  = [u,phi1, phi2]
@@ -680,7 +737,7 @@ class FWISolver():
     # FWI Function
     #==============================================================================    
     def apply(self,sn):
-        rec     = self.rec_true[sn].data[:]
+        rec     = self.rec_true[sn]
         setting = self.setting
         nt      = self.nt
         setup   = self.setup
@@ -697,7 +754,7 @@ class FWISolver():
             factor  = mt.ceil(nt/nsnaps) + 1
             time_subsampled = ConditionalDimension('t_sub', parent=grid.time_dim, factor=factor)
             usave = TimeFunction(name='usave', grid=grid, time_order=2, space_order=2,save=nsnaps, time_dim=time_subsampled)
-
+            
         # Receivers Parameters
         nrec = setting["rec_n"] #receivers numbers
 
@@ -710,13 +767,25 @@ class FWISolver():
         residual.coordinates.data[:, 1] = setting["recposition_z"]
 
         # Source Prameters
-        src = RickerSource(name='src',grid=grid,f0=setting["f0"],npoint=1,time_range=self.time_range,staggered=NODE,dtype=np.float64)
+        src = RickerSource(name='src',grid=grid,f0=setting["f0"],npoint=1,time_range=self.time_range)
+
+        if setting['multiscale']:
+            nyq = 0.5*(1/dt0)*1000  # Nyquist Frequency
+            normal_cutoff = (self.freq) / nyq
+            # Get the filter coefficients 
+            b, a          = butter(2, normal_cutoff, btype='low', analog=False)
+            aux = np.copy(src.data[:,0])
+            src.data[:] = 0
+            
+            src.data[:,0] = filtfilt(b, a, aux)
+
 
         # The shots start at the position 2*sd in the physical domain
         xposf = setting["x0"] + setting["shots_dist"] + setting["shots_dist"]*sn  
         src.coordinates.data[:, 0] = xposf
         src.coordinates.data[:, 1] = setting["shotposition_z"] 
 
+       
         
         u    = TimeFunction(name="u",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=NODE,dtype=np.float64) 
         v    = TimeFunction(name="v",grid=grid,time_order=setup.tou,space_order=setup.sou,staggered=NODE,dtype=np.float64) 
@@ -761,7 +830,7 @@ class FWISolver():
 
             # Forward solver -- Wrapper
             op_fw_guess = solv(recg,src,vp_guess,g,vector,grid,setup,system='forward') 
-            
+
             # Adjoint-based gradient solver -- Wrapper
             op_bw = solv(residual, src, vp_guess,g,vector_adj,grid,setup,system='gradient',grad=grad,usave=u)
 
@@ -770,10 +839,10 @@ class FWISolver():
             wrap_rev = CheckpointOperator(op_bw,dt=dt0)
 
             wrp = Revolver(cp, wrap_fw, wrap_rev, n_checkpoints, nt-1)
-
+           
             # Forward solver
             wrp.apply_forward()
-
+                       
             # Difference betwen true and guess model
             residual.data[:] = rec-recg.data[:]   # residual used as a forcing in the adjoint eq.
 
@@ -781,22 +850,28 @@ class FWISolver():
             wrp.apply_reverse()
 
         else:
-           
+            
             # Forward solver -- Wrapper
             op_fw_guess = solv(recg, src, vp_guess,g,vector,grid,setup,system='forward',save=True, usave=usave) 
             
             # Adjoint-based gradient solver -- Wrapper
-            op_bw = solv(residual, src, vp_guess,g,vector_adj,grid,setup,system='gradient',grad=grad,usave=usave)
-
-            op_fw_guess(dt=dt0)
-
-            # Difference betwen true and guess model
-            residual.data[:]=rec-recg.data[:] # residual used as a forcing in the adjoint eq.
+            if setting["Abcs"]=='habc-a1' or setting["Abcs"]=='Higdon':
+                op_bw = solv(residual, src, vp_guess,g,vector_adj,grid,setup,system='gradient',grad=grad,usave=usave, damp=self.gdamp)
             
+            else:
+                op_bw = solv(residual, src, vp_guess,g,vector_adj,grid,setup,system='gradient',grad=grad,usave=usave)
+
+            
+            op_fw_guess(dt=dt0)
+       
+            residual.data[:]=rec-recg.data[:] # residual used as a forcing in the adjoint eq.
+         
             op_bw(dt=dt0)
 
+        
 
         J = 0.5*np.linalg.norm(residual.data.flatten())**2
+  
         grad.data[0:setup.npmlx,:] = 0.
         grad.data[-setup.npmlx:setup.nptx,:] = 0.
         grad.data[:,-setup.npmlz:setup.nptz] = 0.

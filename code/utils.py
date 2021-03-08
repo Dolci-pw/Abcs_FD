@@ -3,8 +3,11 @@
 #==============================================================================
 import numpy                   as np
 import math                    as mt
+import os
+import pywt
 from   scipy.interpolate       import interp1d
 from   distributed             import Client, wait
+from   scipy.signal            import butter, filtfilt, sosfilt
 #==============================================================================
 
 #==============================================================================
@@ -339,37 +342,53 @@ def gerav1m0(setup,v0):
     return v1      
 #==============================================================================
 
-# ==============================================================================
-# Start and setup DASK cluster
-# ==============================================================================
-def dask_start(threads_per_worker, n_workers, death_timeout, USE_GPU_AWARE_DASK=False):
-    if USE_GPU_AWARE_DASK:
-        from dask_cuda import LocalCUDACluster
-        cluster = LocalCUDACluster(
-            threads_per_worker=threads_per_worker, death_timeout=death_timeout)
-    else:
-        from distributed import LocalCluster
-        
-        cluster = LocalCluster(n_workers=n_workers,
-                               death_timeout=death_timeout)
-
-    client = Client(cluster)
-
-    return client, cluster
-
-class fg_pair:
-    def __init__(self, f, g):
-        self.f = f
-        self.g = g
+def butter_lowpass_filter(shot, cutoff, fs, order=1):
+    """ Low-pass filter the shot record with sampling-rate fs Hz
+        and cutoff freq. Hz
+    """
+    nyq = 0.5*fs*1000  # Nyquist Frequency
+    normal_cutoff = (cutoff) / nyq
+  
+    # Get the filter coefficients  
+    b, a = butter(order, normal_cutoff, btype="low", analog=False)
     
-    def __add__(self, other):
-        f = self.f + other.f
-        g = self.g + other.g
-        
-        return fg_pair(f, g)
+    nc, nr = np.shape(shot)
+    # from scipy import signal
+    # sos           = signal.butter(1, cutoff, btype='lowpass', fs=fs, output='sos')
     
-    def __radd__(self, other):
-        if other == 0:
-            return self
-        else:
-            return self.__add__(other)
+    for rec in range(nr):
+        shot[:,rec] = filtfilt(b, a, shot[:,rec])
+
+  
+def wavelet(rec, n, w, keep):
+    
+    '''
+    Input parameters:
+        recs: number os shots
+        n: level of decomposition
+        w: wavelet family
+        keep: percentage of coefficients to keep (0.2 gives 80% of compression)
+        input_path: seismogram path
+        output_path: path to save wavelets   
+    '''
+    # for sn in range(0,17):
+    #     print(sn)
+    #     filename = str(input_path) + "/rec_" + str(sn) + ".npy"
+    #     print(filename)
+    #     rec = np.load(filename)
+    coeffs = pywt.wavedec2(rec,wavelet=w,level=n)
+    coeff_arr, coeff_slices = pywt.coeffs_to_array(coeffs)
+    Csort = np.sort(np.abs(coeff_arr.reshape(-1)))
+
+    thresh = Csort[int(np.floor((1-keep)*len(Csort)))]
+    ind = np.abs(coeff_arr) > thresh
+    Cfilt = coeff_arr * ind # Threshold small indices
+    
+    coeffs_filt = pywt.array_to_coeffs(Cfilt,coeff_slices,output_format='wavedec2')
+    Arecon = pywt.waverec2(coeffs_filt,wavelet=w)
+    samples = rec.shape[0]
+    columns = rec.shape[1]
+    Hsub = Arecon[:samples,:columns]
+    
+    return Hsub
+  

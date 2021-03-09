@@ -62,6 +62,7 @@ class bottomExtension(SubDomain):
 # Domain and Subdomains Settings
 #==============================================================================  
 def SetGrid(setup):   
+    
     d0_domain = physdomain(setup.npmlx,setup.npmlz)
     d1_domain = leftExtension(setup.npmlx,setup.npmlz)
     d2_domain = rightExtension(setup.npmlx,setup.npmlz)

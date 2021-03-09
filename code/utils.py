@@ -56,7 +56,8 @@ class ProblemSetup:
         self.habcw = self.set["habcw"] 
         
 #==============================================================================
- #==============================================================================  
+
+#==============================================================================  
     def TimeDiscret(self, v0):
 
         cfl = self.cfl
@@ -260,18 +261,19 @@ def geramdamp(setup, v0,abcs):
 
 #==============================================================================        
 def gerapesoscpml(setup, v0, geramdamp, dt0):
-    D01,D02= geramdamp
-    nptx   = setup.nptx
-    nptz   = setup.nptz
-    f0     = setup.f0
-    x0pml  = setup.x0pml   
-    x1pml  = setup.x1pml   
-    z0pml  = setup.z0pml   
-    y1pml  = setup.z1pml   
-    X0     = np.linspace(setup.x0,setup.x1,nptx)   
-    Z0     = np.linspace(setup.z0,setup.z1,nptz)    
-    deltax = setup.compx  
-    deltaz = setup.compz      
+    
+    D01,D02 = geramdamp
+    nptx    = setup.nptx
+    nptz    = setup.nptz
+    f0      = setup.f0
+    x0pml   = setup.x0pml   
+    x1pml   = setup.x1pml   
+    z0pml   = setup.z0pml   
+    y1pml   = setup.z1pml   
+    X0      = np.linspace(setup.x0,setup.x1,nptx)   
+    Z0      = np.linspace(setup.z0,setup.z1,nptz)    
+    deltax  = setup.compx  
+    deltaz  = setup.compz      
     
     A1C = np.zeros((nptx,nptz))
     A2C = np.zeros((nptx,nptz))
@@ -342,10 +344,13 @@ def gerav1m0(setup,v0):
     return v1      
 #==============================================================================
 
+#==============================================================================
 def butter_lowpass_filter(shot, cutoff, fs, order=1):
+    
     """ Low-pass filter the shot record with sampling-rate fs Hz
         and cutoff freq. Hz
     """
+    
     nyq = 0.5*fs*1000  # Nyquist Frequency
     normal_cutoff = (cutoff) / nyq
   
@@ -355,9 +360,11 @@ def butter_lowpass_filter(shot, cutoff, fs, order=1):
     nc, nr = np.shape(shot)
 
     for rec in range(nr):
+        
         shot[:,rec] = filtfilt(b, a, shot[:,rec])
+#==============================================================================
 
-  
+#==============================================================================
 def wavelet(rec, n, w, keep):
     
     '''
@@ -385,4 +392,4 @@ def wavelet(rec, n, w, keep):
     Hsub = Arecon[:samples,:columns]
     
     return Hsub
-  
+#==============================================================================

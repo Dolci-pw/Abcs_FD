@@ -202,7 +202,6 @@ def plotgrad(grad, setup):
 # Plot 4 - Velocity
 #==============================================================================
 def graph2dvel(vel,setup):
-    
      
     x0pml = setup.x0pml
     x1pml = setup.x1pml
@@ -509,5 +508,68 @@ def graph2drecres(rec,setup):
     
     plot.close()
     
+    return
+#==============================================================================
+
+#==============================================================================
+# Plot 8 - Velocity
+#==============================================================================
+def graph2dden(den,setup):
+     
+    x0pml = setup.x0pml
+    x1pml = setup.x1pml
+    z0pml = setup.z0pml
+    z1pml = setup.z1pml
+    npmlx = setup.npmlx
+    npmlz = setup.npmlz
+    
+    plot.figure(figsize = (14,4))
+    
+    fscale =  10**(-3)
+    
+    vminv = np.amin(den)
+
+    vmaxv = np.amax(den)
+
+    scale  = np.amax(den[npmlx:-npmlx,0:-npmlz])
+
+    extent = [fscale*x0pml,fscale*x1pml, fscale*z1pml, fscale*z0pml]
+
+    fig = plot.imshow(np.transpose(den[npmlx:-npmlx,0:-npmlz]), vmin=vminv,vmax=vmaxv, cmap=cm.jet, extent=extent)
+        
+    plot.gca().xaxis.set_major_formatter(mticker.FormatStrFormatter('%.2f km'))
+
+    plot.gca().yaxis.set_major_formatter(mticker.FormatStrFormatter('%.2f km'))
+
+    plot.title('Density Profile')
+
+    plot.grid()
+
+    ax = plot.gca()
+
+    ax.xaxis.set_major_locator(plot.MaxNLocator(4))
+    
+    ax.yaxis.set_major_locator(plot.MaxNLocator(4))
+   
+    divider = make_axes_locatable(ax)
+
+    cax = divider.append_axes("right", size="4%", pad=0.05)
+
+    tick_locator = ticker.MaxNLocator(nbins=5)
+
+    cbar = plot.colorbar(fig, cax=cax, format='%.2e')
+
+    cbar.locator = tick_locator
+
+    cbar.update_ticks()
+
+    cbar.set_label('Density []')
+
+    plot.savefig('figures/density_map.eps',dpi=100,format='eps')
+
+    #plot.show()
+    
+    plot.close()
+
     return
 #==============================================================================

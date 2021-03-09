@@ -31,7 +31,7 @@ if (__name__=='__main__'):
     sys.path.insert(0, './code')
     from   timeit import default_timer as timer
     import solver, domain2D, utils, velmodel
-    from   plots  import plotgrad, graph2drec, graph2d, graph2dvel, graph2dvel2, graphobjv, graph2drecres
+    from   plots  import plotgrad, graph2drec, graph2d, graph2dvel, graph2dvel2, graphobjv, graph2drecres, graph2dden
     #==============================================================================
 
     #==============================================================================
@@ -74,21 +74,24 @@ if (__name__=='__main__'):
     #==============================================================================
     if(model['vp']=='Circle'):
         
-        vp, v0 = velmodel.SetVel(model,setup, setting,grid,vp_circle=3, vp_background=2.5,r=75)
+        vp, v0, d0 = velmodel.SetVel(model,setup, setting,grid,vp_circle=3, vp_background=2.5,r=75)
     
     elif(model['vp']=='Marmousi'):
     
         with segyio.open('VelModelFiles/Mar2_Vp_1.25m.segy') as segyfile:
             vp_file = segyio.tools.cube(segyfile)[0,6200:6800,100:700]
         
-        vp, v0 = velmodel.SetVel(model,setup, setting,grid,vp_file=vp_file)
+        with segyio.open('VelModelFiles/density_mm.segy') as segyfile:
+            den_file = segyio.tools.cube(segyfile)[0,6200:6800,100:700]
+        
+        vp, v0, d0 = velmodel.SetVel(model,setup, setting,grid,vp_file=vp_file,den_file=den_file)
     
     elif(model['vp']=='GM'):
     
-        vp_file = np.fromfile('VelModelFiles/gm_perfil1.bin',dtype='float32')
-        vp, v0 = velmodel.SetVel(model,setup, setting,grid,vp_file=vp_file)
+        vp_file    = np.fromfile('VelModelFiles/gm_perfil1.bin',dtype='float32')
+        vp, v0, d0 = velmodel.SetVel(model,setup, setting,grid,vp_file=vp_file)
     #==============================================================================
-    
+        
     #==============================================================================    
     # Time Parameters
     #==============================================================================
@@ -124,7 +127,7 @@ if (__name__=='__main__'):
     #==============================================================================
     # FWI Solver Class
     #==============================================================================
-    fwisolver = solver.FWISolver(set_time,setup, setting,grid,utils,v0,vp)
+    fwisolver = solver.FWISolver(set_time,setup, setting,grid,utils,v0,vp,d0)
     #==============================================================================
 
     #==============================================================================
@@ -240,7 +243,7 @@ if (__name__=='__main__'):
     #==============================================================================
     if(model['vp']=='Circle'):
         
-        _, vini = velmodel.SetVel(model,setup, setting,grid,vp_circle=2.7, vp_background=2.5,r=75)
+        _, vini, _ = velmodel.SetVel(model,setup, setting,grid,vp_circle=2.7, vp_background=2.5,r=75)
    
     elif(model['vp']=='Marmousi' or model['vp']=='GM'):
     
@@ -257,18 +260,25 @@ if (__name__=='__main__'):
     #==============================================================================
     start   = tm.time()
 
-    if setting['multiscale']:
+    if(setting['multiscale']):
+        
         freq_bands = setting['freq_bands']
+        
         for freq in freq_bands:
+            
             rec_f  = []
+            
             for sn in range(0, nshots):
                 
                 utils.butter_lowpass_filter(rec_true[sn].data, freq, 1.0/(dt0),order=1)
                 
-                if setting['Wavelet_filter']:
+                if(setting['Wavelet_filter']):
+                    
                     aux = utils.wavelet(rec_true[sn].data, 2, 'db1', 0.2)  
                     rec_f.append(aux)
+                
                 else:
+                
                     rec_f.append(rec_true[sn].data)
 
             fwisolver.rec_true = rec_f
@@ -280,18 +290,23 @@ if (__name__=='__main__'):
             vini = result.x
 
     else:
+        
         rec_f  = []
+        
         for sn in range(0, nshots):
-            if setting['Wavelet_filter']:  
+        
+            if(setting['Wavelet_filter']):
+                
                 aux = utils.wavelet(rec_true[sn].data, 2, 'db1', 0.2)  
                 rec_f.append(aux)
+            
             else:
+            
                 rec_f.append(rec_true[sn].data)
 
-
         fwisolver.rec_true = rec_f
-        m0     = np.reshape(vini,-1)
-        bounds = [(vmin,vmax) for _ in range(len(m0))]
+        m0      = np.reshape(vini,-1)
+        bounds  = [(vmin,vmax) for _ in range(len(m0))]
         result  = optimize.minimize(shots, m0, method='L-BFGS-B', jac=True, tol = 1e-4, bounds=bounds, options={"gtol": 1e-2,"maxiter": 200})
        
     end     = tm.time()
@@ -319,11 +334,12 @@ if (__name__=='__main__'):
     # P2 = graph2drec(rec.data, setup)
     P3 = graph2dvel(v0,setup)
     # P4 = graph2dvel(vresul,setup)
+    P5 = graph2dden(d0.data,setup)
     #==============================================================================
 
     #==============================================================================
     # Plot Comprative Results
     #==============================================================================    
-    P5 = graph2dvel2(vel,vresult,setup)
-    P6 = graphobjv(vobj)
+    P6 = graph2dvel2(vel,vresult,setup)
+    P7 = graphobjv(vobj)
     #==============================================================================

@@ -23,7 +23,7 @@ from   examples.seismic import Receiver
 import settings_config
 sys.path.insert(0, './code')
 from   timeit import default_timer as timer
-import solver, domain2D, domain2Dhabc, utils, velmodel
+import solver, domain2D, utils, velmodel
 from   plots  import plotgrad, graph2drec, graph2d,graph2dvel
 #==============================================================================
 
@@ -41,7 +41,6 @@ setup   = utils.ProblemSetup(setting)
 #==============================================================================
 # Domain and Subdomains Settings
 #==============================================================================            
-
 d0_domain = domain2D.physdomain(setup.npmlx,setup.npmlz)
 d1_domain = domain2D.leftExtension(setup.npmlx,setup.npmlz)
 d2_domain = domain2D.rightExtension(setup.npmlx,setup.npmlz)
@@ -57,10 +56,19 @@ grid    = Grid(origin=origin,extent=extent,shape=shape,subdomains=(d0_domain,d1_
 #==============================================================================
 # Velocity Model
 #==============================================================================
-with segyio.open('VelModelFiles/marmousi_perfil1.segy') as segyfile:
+with segyio.open('VelModelFiles/Mar2_Vp_1.25m.segy') as segyfile:
+
     vp_file = segyio.tools.cube(segyfile)[0,6200:6800,100:700]
 
 v0 = velmodel.MarmoVelModel(setup, vp_file, setting["Abcs"])
+
+with segyio.open('VelModelFiles/density_mm.segy') as segyfile:
+
+    den_file = segyio.tools.cube(segyfile)[0,6200:6800,100:700]
+
+d0m = MarmoDenModel(setup, den_file)
+d0  = Function(name="d0",grid=grid,space_order=setup.sou,staggered=NODE,dtype=np.float64)
+d0.data[:,:] = d0m
 
 if(setting["Abcs"]=='pml'):
 

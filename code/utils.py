@@ -3,8 +3,11 @@
 #==============================================================================
 import numpy                   as np
 import math                    as mt
+import os
+import pywt
 from   scipy.interpolate       import interp1d
 from   distributed             import Client, wait
+from   scipy.signal            import butter, filtfilt, sosfilt
 #==============================================================================
 
 #==============================================================================
@@ -53,7 +56,8 @@ class ProblemSetup:
         self.habcw = self.set["habcw"] 
         
 #==============================================================================
- #==============================================================================  
+
+#==============================================================================  
     def TimeDiscret(self, v0):
 
         cfl = self.cfl
@@ -161,34 +165,48 @@ def fdamp(x,z,setup,v0, abcs, **kwargs):
     
         i=kwargs.get('i')
 
+        ctex = (-3/2)*(1/setup.lx)*np.amax(v0)*np.log(0.001)
+        ctez = (-3/2)*(1/setup.lz)*np.amax(v0)*np.log(0.001)
+        quibarx  = ctex
+        quibarz  = ctez
+
         quibar  = 0.05
         
         if(i==1):
             
             a = np.where(x<=x0pml,(np.abs(x-x0pml)/setup.lx),np.where(x>=x1pml,(np.abs(x-x1pml)/setup.lx),0.))
-            fdamp = quibar*(a-(1./(2.*np.pi))*np.sin(2.*np.pi*a))
+            #fdamp = quibar*(a-(1./(2.*np.pi))*np.sin(2.*np.pi*a))
+            fdamp = quibarx*(a-(1./(2.*np.pi))*np.sin(2.*np.pi*a))
         
         if(i==2):
         
             a = np.where(z<=z0pml,(np.abs(z-z0pml)/setup.lz),np.where(z>=z1pml,(np.abs(z-z1pml)/setup.lz),0.))
-            fdamp = quibar*(a-(1./(2.*np.pi))*np.sin(2.*np.pi*a))
-    
+            #fdamp = quibar*(a-(1./(2.*np.pi))*np.sin(2.*np.pi*a))
+            fdamp = quibarz*(a-(1./(2.*np.pi))*np.sin(2.*np.pi*a))
+   
     elif(abcs=='cpml'): 
     
         i=kwargs.get('i')
 
         quibar  = 0.1
         
+        ctex = (-3/2)*(1/setup.lx)*np.amax(v0)*np.log(0.001)
+        ctez = (-3/2)*(1/setup.lz)*np.amax(v0)*np.log(0.001)
+        quibarx  = ctex
+        quibarz  = ctez
+
+        
         if(i==1):
             
             a = np.where(x<=x0pml,(np.abs(x-x0pml)/setup.lx),np.where(x>=x1pml,(np.abs(x-x1pml)/setup.lx),0.))
-            fdamp = quibar*(a**2)
+            #fdamp = quibar*(a**2)
+            fdamp = quibarx*(a**2)
         
         if(i==2):
         
             a = np.where(z<=z0pml,(np.abs(z-z0pml)/setup.lz),np.where(z>=z1pml,(np.abs(z-z1pml)/setup.lz),0.))
-            fdamp = quibar*(a**2)
-            
+            #fdamp = quibar*(a**2)
+            fdamp = quibarz*(a**2)
     else:
         
         assert "Invalid option"
@@ -197,7 +215,7 @@ def fdamp(x,z,setup,v0, abcs, **kwargs):
 #==============================================================================
 
 #==============================================================================
-def geramdamp(setup, v0,abcs):
+def geramdamp(setup,v0,abcs):
 
     x1     = setup.x1
     z1     = setup.z1
@@ -257,18 +275,19 @@ def geramdamp(setup, v0,abcs):
 
 #==============================================================================        
 def gerapesoscpml(setup, v0, geramdamp, dt0):
-    D01,D02= geramdamp
-    nptx   = setup.nptx
-    nptz   = setup.nptz
-    f0     = setup.f0
-    x0pml  = setup.x0pml   
-    x1pml  = setup.x1pml   
-    z0pml  = setup.z0pml   
-    y1pml  = setup.z1pml   
-    X0     = np.linspace(setup.x0,setup.x1,nptx)   
-    Z0     = np.linspace(setup.z0,setup.z1,nptz)    
-    deltax = setup.compx  
-    deltaz = setup.compz      
+    
+    D01,D02 = geramdamp
+    nptx    = setup.nptx
+    nptz    = setup.nptz
+    f0      = setup.f0
+    x0pml   = setup.x0pml   
+    x1pml   = setup.x1pml   
+    z0pml   = setup.z0pml   
+    y1pml   = setup.z1pml   
+    X0      = np.linspace(setup.x0,setup.x1,nptx)   
+    Z0      = np.linspace(setup.z0,setup.z1,nptz)    
+    deltax  = setup.compx  
+    deltaz  = setup.compz      
     
     A1C = np.zeros((nptx,nptz))
     A2C = np.zeros((nptx,nptz))
@@ -339,37 +358,52 @@ def gerav1m0(setup,v0):
     return v1      
 #==============================================================================
 
-# ==============================================================================
-# Start and setup DASK cluster
-# ==============================================================================
-def dask_start(threads_per_worker, n_workers, death_timeout, USE_GPU_AWARE_DASK=False):
-    if USE_GPU_AWARE_DASK:
-        from dask_cuda import LocalCUDACluster
-        cluster = LocalCUDACluster(
-            threads_per_worker=threads_per_worker, death_timeout=death_timeout)
-    else:
-        from distributed import LocalCluster
-        
-        cluster = LocalCluster(n_workers=n_workers,
-                               death_timeout=death_timeout)
-
-    client = Client(cluster)
-
-    return client, cluster
-
-class fg_pair:
-    def __init__(self, f, g):
-        self.f = f
-        self.g = g
+#==============================================================================
+def butter_lowpass_filter(shot, cutoff, fs, order=1):
     
-    def __add__(self, other):
-        f = self.f + other.f
-        g = self.g + other.g
-        
-        return fg_pair(f, g)
+    """ Low-pass filter the shot record with sampling-rate fs Hz
+        and cutoff freq. Hz
+    """
     
-    def __radd__(self, other):
-        if other == 0:
-            return self
-        else:
-            return self.__add__(other)
+    nyq = 0.5*fs*1000  # Nyquist Frequency
+    normal_cutoff = (cutoff) / nyq
+  
+    # Get the filter coefficients  
+    b, a = butter(order, normal_cutoff, btype="low", analog=False)
+    
+    nc, nr = np.shape(shot)
+
+    for rec in range(nr):
+        
+        shot[:,rec] = filtfilt(b, a, shot[:,rec])
+#==============================================================================
+
+#==============================================================================
+def wavelet(rec, n, w, keep):
+    
+    '''
+    Input parameters:
+        recs: number os shots
+        n: level of decomposition
+        w: wavelet family
+        keep: percentage of coefficients to keep (0.2 gives 80% of compression)
+        input_path: seismogram path
+        output_path: path to save wavelets   
+    '''
+
+    coeffs = pywt.wavedec2(rec,wavelet=w,level=n)
+    coeff_arr, coeff_slices = pywt.coeffs_to_array(coeffs)
+    Csort = np.sort(np.abs(coeff_arr.reshape(-1)))
+
+    thresh = Csort[int(np.floor((1-keep)*len(Csort)))]
+    ind = np.abs(coeff_arr) > thresh
+    Cfilt = coeff_arr * ind # Threshold small indices
+    
+    coeffs_filt = pywt.array_to_coeffs(Cfilt,coeff_slices,output_format='wavedec2')
+    Arecon = pywt.waverec2(coeffs_filt,wavelet=w)
+    samples = rec.shape[0]
+    columns = rec.shape[1]
+    Hsub = Arecon[:samples,:columns]
+    
+    return Hsub
+#==============================================================================

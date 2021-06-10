@@ -22,7 +22,7 @@ from   examples.seismic import Receiver
 import settings_config
 sys.path.insert(0, './code')
 from   timeit import default_timer as timer
-import solver, domain2D, domain2Dhabc, utils, velmodel
+import solver, domain2D, utils, velmodel
 from   plots  import plotgrad, graph2drec, graph2d, graph2dvel
 #==============================================================================
 
@@ -40,7 +40,6 @@ setup   = utils.ProblemSetup(setting)
 #==============================================================================
 # Domain and Subdomains Settings
 #==============================================================================            
-
 d0_domain = domain2D.physdomain(setup.npmlx,setup.npmlz)
 d1_domain = domain2D.leftExtension(setup.npmlx,setup.npmlz)
 d2_domain = domain2D.rightExtension(setup.npmlx,setup.npmlz)
@@ -56,7 +55,10 @@ grid    = Grid(origin=origin,extent=extent,shape=shape,subdomains=(d0_domain,d1_
 #==============================================================================
 # Velocity Model
 #==============================================================================
-v0 = velmodel.HomogVelModel2(setup, setting["Abcs"]) 
+v0  = velmodel.HomogVelModel2(setup, setting["Abcs"])
+d0m = velmodel.HomogDenModel(setup)
+d0 = Function(name="d0",grid=grid,space_order=setup.sou,staggered=NODE,dtype=np.float64)
+d0.data[:,:] = d0m
 
 if(setting["Abcs"]=='pml'):
 

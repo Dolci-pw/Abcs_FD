@@ -165,34 +165,48 @@ def fdamp(x,z,setup,v0, abcs, **kwargs):
     
         i=kwargs.get('i')
 
+        ctex = (-3/2)*(1/setup.lx)*np.amax(v0)*np.log(0.001)
+        ctez = (-3/2)*(1/setup.lz)*np.amax(v0)*np.log(0.001)
+        quibarx  = ctex
+        quibarz  = ctez
+
         quibar  = 0.05
         
         if(i==1):
             
             a = np.where(x<=x0pml,(np.abs(x-x0pml)/setup.lx),np.where(x>=x1pml,(np.abs(x-x1pml)/setup.lx),0.))
-            fdamp = quibar*(a-(1./(2.*np.pi))*np.sin(2.*np.pi*a))
+            #fdamp = quibar*(a-(1./(2.*np.pi))*np.sin(2.*np.pi*a))
+            fdamp = quibarx*(a-(1./(2.*np.pi))*np.sin(2.*np.pi*a))
         
         if(i==2):
         
             a = np.where(z<=z0pml,(np.abs(z-z0pml)/setup.lz),np.where(z>=z1pml,(np.abs(z-z1pml)/setup.lz),0.))
-            fdamp = quibar*(a-(1./(2.*np.pi))*np.sin(2.*np.pi*a))
-    
+            #fdamp = quibar*(a-(1./(2.*np.pi))*np.sin(2.*np.pi*a))
+            fdamp = quibarz*(a-(1./(2.*np.pi))*np.sin(2.*np.pi*a))
+   
     elif(abcs=='cpml'): 
     
         i=kwargs.get('i')
 
         quibar  = 0.1
         
+        ctex = (-3/2)*(1/setup.lx)*np.amax(v0)*np.log(0.001)
+        ctez = (-3/2)*(1/setup.lz)*np.amax(v0)*np.log(0.001)
+        quibarx  = ctex
+        quibarz  = ctez
+
+        
         if(i==1):
             
             a = np.where(x<=x0pml,(np.abs(x-x0pml)/setup.lx),np.where(x>=x1pml,(np.abs(x-x1pml)/setup.lx),0.))
-            fdamp = quibar*(a**2)
+            #fdamp = quibar*(a**2)
+            fdamp = quibarx*(a**2)
         
         if(i==2):
         
             a = np.where(z<=z0pml,(np.abs(z-z0pml)/setup.lz),np.where(z>=z1pml,(np.abs(z-z1pml)/setup.lz),0.))
-            fdamp = quibar*(a**2)
-            
+            #fdamp = quibar*(a**2)
+            fdamp = quibarz*(a**2)
     else:
         
         assert "Invalid option"
@@ -201,7 +215,7 @@ def fdamp(x,z,setup,v0, abcs, **kwargs):
 #==============================================================================
 
 #==============================================================================
-def geramdamp(setup, v0,abcs):
+def geramdamp(setup,v0,abcs):
 
     x1     = setup.x1
     z1     = setup.z1

@@ -26,7 +26,7 @@ class solverABCs():
 #==============================================================================
 # Damping Solver
 #==============================================================================
-    def solvedamp(rec,src,vp,d0,geramdamp,u,grid,setup,system,true_model,save=False,**kwargs):    
+    def solvedamp(rec,src,vp,geramdamp,u,grid,setup,system,true_model,save=False,**kwargs):    
         
         nptx = setup.nptx
         nptz = setup.nptz
@@ -49,9 +49,9 @@ class solverABCs():
             
                 d0.data[:,:] = 1.0
                 
-            rho_term = 0*(1/d0)*(u.dx*d0.dx + u.dy*d0.dy)
+            # rho_term = 0*(1/d0)*(u.dx*d0.dx + u.dy*d0.dy)
                 
-            pde1 = Eq(u.dt2 + rho_term - u.laplace*vp*vp + vp*vp*damp*u.dtc)
+            pde1 = Eq(u.dt2 - u.laplace*vp*vp + vp*vp*damp*u.dtc)
               
             stencil0 =  Eq(u.forward, solve(pde0,u.forward),subdomain = grid.subdomains['d0'])
             stencil1 = [Eq(u.forward, solve(pde1,u.forward),subdomain = grid.subdomains[subds[i]]) for i in range(0,len(subds))]
@@ -98,7 +98,7 @@ class solverABCs():
 #==============================================================================
 # PML Solver  
 #==============================================================================
-    def solvepml(rec,src,vp,d0,geramdamp,vector,grid,setup,system,true_model,save=False,**kwargs):   
+    def solvepml(rec,src,vp,geramdamp,vector,grid,setup,system,true_model,save=False,**kwargs):   
 
         nptx = setup.nptx
         nptz = setup.nptz
@@ -132,13 +132,13 @@ class solverABCs():
             
             d0.data[:,:] = 1.0
                 
-        rho_term = 0*(1/d0)*(u.dx*d0.dx + u.dy*d0.dy)
+        # rho_term = 0*(1/d0)*(u.dx*d0.dx + u.dy*d0.dy)
 
-        pde01   = Eq(u.dt2 + rho_term - u.laplace*vp[0]*vp[0]) 
+        pde01   = Eq(u.dt2 - u.laplace*vp[0]*vp[0]) 
                                                      
         if(system=='forward'):
             
-            pde02a  = u.dt2   + rho_term + (dampx0+dampz0)*u.dtc + (dampx0*dampz0)*u - u.laplace*vp[0]*vp[0] 
+            pde02a  = u.dt2   + (dampx0+dampz0)*u.dtc + (dampx0*dampz0)*u - u.laplace*vp[0]*vp[0] 
             pde02b  = - (0.5/hx)*(phi1[t,x,z-1]+phi1[t,x,z]-phi1[t,x-1,z-1]-phi1[t,x-1,z])
             pde02c  = - (0.5/hz)*(phi2[t,x-1,z]+phi2[t,x,z]-phi2[t,x-1,z-1]-phi2[t,x,z-1])
             pde02   = Eq(pde02a + pde02b + pde02c)
@@ -220,7 +220,7 @@ class solverABCs():
 #==============================================================================
 # HABC Solver
 #==============================================================================
-    def solvehabc(rec,src,vp,d0,gerapesos,u,grid,setup,system,true_model,save=False,**kwargs):
+    def solvehabc(rec,src,vp,gerapesos,u,grid,setup,system,true_model,save=False,**kwargs):
         
         (hx,hz) = grid.spacing_map 
         (x, z)  = grid.dimensions     
@@ -239,13 +239,10 @@ class solverABCs():
         u2  = Function(name="u2"   ,grid=grid,space_order=setup.sou,staggered=NODE,dtype=np.float64)
         u3  = Function(name="u3"   ,grid=grid,space_order=setup.sou,staggered=NODE,dtype=np.float64)
 
-        if(true_model==False):
-            
-            d0.data[:,:] = 1.0
-                
-        rho_term = 0*(1/d0)*(u.dx*d0.dx + u.dy*d0.dy)
+      
+        # rho_term = 0*(1/d0)*(u.dx*d0.dx + u.dy*d0.dy)
 
-        pde0 = Eq(u.dt2 + rho_term - u.laplace*vp*vp)
+        pde0 = Eq(u.dt2 - u.laplace*vp*vp)
         
         if(system=='forward' and setup.Abcs=='habc-a1'):
             
@@ -539,7 +536,7 @@ class solverABCs():
 #==============================================================================
 # CPML Solver
 #==============================================================================
-    def solvecpml(rec,src,vp,d0,geradamp,vector,grid, setup,system,true_model,save=False,**kwargs):   
+    def solvecpml(rec,src,vp,geradamp,vector,grid, setup,system,true_model,save=False,**kwargs):   
         
         u     = vector[0]
         phi1  = vector[1]
@@ -584,13 +581,13 @@ class solverABCs():
             
             d0.data[:,:] = 1.0
                 
-        rho_term = 0*(1/d0)*(u.dx*d0.dx + u.dy*d0.dy)
+        # rho_term = 0*(1/d0)*(u.dx*d0.dx + u.dy*d0.dy)
             
-        pde01   = Eq(u.dt2 + rho_term -u.laplace*vp*vp) 
+        pde01   = Eq(u.dt2 -u.laplace*vp*vp) 
         
         if(system=='forward'):
             
-            pde02  = u.dt2 + rho_term + vp*vp*(-u.laplace -zeta1 -zeta2 -(1/hx)*(phi1[t,x,z]-phi1[t,x-1,z]) -(1/hz)*(phi2[t,x,z]-phi2[t,x,z-1]))
+            pde02  = u.dt2 + vp*vp*(-u.laplace -zeta1 -zeta2 -(1/hx)*(phi1[t,x,z]-phi1[t,x-1,z]) -(1/hz)*(phi2[t,x,z]-phi2[t,x,z-1]))
 
             pde1 = a1w*phi1  + b1w*(1/hx)*(1/2)*(u[t+1,x+1,z]-u[t+1,x,z]+u[t,x+1,z]-u[t,x,z])
             pde2 = a2w*phi2  + b2w*(1/hz)*(1/2)*(u[t+1,x,z+1]-u[t+1,x,z]+u[t,x,z+1]-u[t,x,z])
@@ -666,7 +663,7 @@ class FWISolver():
 #==============================================================================
 
 #==============================================================================
-    def __init__(self,set_time,setup,setting,grid,utils,v0,vp,d0):  
+    def __init__(self,set_time,setup,setting,grid,utils,v0,vp):  
 
         self.dt0, self.nt, self.time_range = set_time  #time discretization
         self.setting  = setting
@@ -675,7 +672,6 @@ class FWISolver():
         self.rec_true = []
         self.utils    = utils
         self.vp       = vp
-        self.d0       = d0
         self.vp_g     = 0
         self.freq     = 0
         self.abc      = setting["Abcs"]
@@ -786,7 +782,7 @@ class FWISolver():
             
             vector = u   
 
-        op_fw = solv(rec,src,self.vp,self.d0,g,vector,grid,setup,system='forward',true_model=True)
+        op_fw = solv(rec,src,self.vp,g,vector,grid,setup,system='forward',true_model=True)
         op_fw(dt=dt0)
 
         return rec.data, u.data[0]
@@ -809,7 +805,7 @@ class FWISolver():
         abc     = self.abc
         (x, z)  = grid.dimensions
         vp_guess = self.vp_g
-        d0       = self.d0
+        
         
         if not setting["checkpointing"]:
         
@@ -910,16 +906,16 @@ class FWISolver():
         else:
             
             # Forward solver -- Wrapper
-            op_fw_guess = solv(recg, src, vp_guess,d0,g,vector,grid,setup,system='forward',true_model=False,save=True, usave=usave) 
+            op_fw_guess = solv(recg, src, vp_guess,g,vector,grid,setup,system='forward',true_model=False,save=True, usave=usave) 
             
             # Adjoint-based gradient solver -- Wrapper
             if(setting["Abcs"]=='habc-a1' or setting["Abcs"]=='Higdon'):
                 
-                op_bw = solv(residual, src, vp_guess,d0,g,vector_adj,grid,setup,system='gradient',true_model=False,grad=grad,usave=usave, damp=self.gdamp)
+                op_bw = solv(residual, src, vp_guess,g,vector_adj,grid,setup,system='gradient',true_model=False,grad=grad,usave=usave, damp=self.gdamp)
             
             else:
                 
-                op_bw = solv(residual, src, vp_guess,d0,g,vector_adj,grid,setup,system='gradient',true_model=False,grad=grad,usave=usave)
+                op_bw = solv(residual, src, vp_guess,g,vector_adj,grid,setup,system='gradient',true_model=False,grad=grad,usave=usave)
             
             op_fw_guess(dt=dt0)
        

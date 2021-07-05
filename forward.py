@@ -50,12 +50,15 @@ if (__name__=='__main__'):
 
     if(model['vp']=='Marmousi'):
     
-        setting = settings_config.settings.setting5
+        setting = settings_config.settings.setting1
 
     elif(model['vp']=='GMnew'):
 
-        setting = settings_config.settings.setting7
+        setting = settings_config.settings.setting2
 
+    elif(model['vp']=='Ovethrust'):
+
+        setting = settings_config.settings.setting3
 
     setup   = utils.ProblemSetup(setting)
     
@@ -75,36 +78,25 @@ if (__name__=='__main__'):
     #==============================================================================
     # Chosing the model
     #==============================================================================
-    if(model['vp']=='Circle'):
-        
-        vp, v0 = velmodel.GetParameter(model,setup, setting,grid,vp_circle=3, vp_background=2.5,r=75)
-    
-    elif(model['vp']=='Marmousi'):
+    if(model['vp']=='Marmousi'):
     
         with segyio.open('VelModelFiles/Mar2_Vp_1.25m.segy') as segyfile:
             vp_file = segyio.tools.cube(segyfile)[0,:,:]
         
-        vp, v0, dens = velmodel.SetVel(model,setup, setting,grid,vp_file=vp_file,den_file=den_file,start_model='True')
+        vp, v0 = velmodel.SetVel(model,setup, setting,grid,vp_file=vp_file,start_model='True')
 
-    elif(model['vp']=='GMnew'):
-        vp_file = np.load("VelModelFiles/models_velocity/GM_C3_IL1976_(z_step_32).npy")
-        vp = velmodel.GetParameter(model,setup, setting,grid,file=vp_file)
-     
-        sigma  = 10 
-        if setting["Abcs"]=='pml':
-            vp[0].data[:]   = gaussian_filter(vp[0].data[:],sigma=sigma)
-            vp[1].data[:]   = gaussian_filter(vp[1].data[:],sigma=sigma)
-        else:
-            vp.data[:]   = gaussian_filter(vp.data[:],sigma=sigma)
-        # if setting["Abcs"]=='pml':
-        #     vp[0].data[:] = vp[0].data[:]*10**(-3)
-        #     vp[1].data[:] = vp[1].data[:]*10**(-3)
-        #     v0      = vp[0].data[:]
-        #     v1      = vp[1].data[:]
-        # else:
-        #     vp.data[:] = vp.data[:]*10**(-3)
-        v0      = vp.data[:]
+    elif(model['vp']=='Ovethrust'):
 
+        vp_file = np.load("./VelModelFiles/overtrhust_2D.npy")
+        vp_files = np.transpose(vp_file)
+        vp, v0  = velmodel.SetVel(model,setup, setting,grid,vp_file=vp_file)
+
+    # import matplotlib.pyplot as plt     
+    # c = plt.imshow(vp.data, cmap ='jet')
+    # plt.colorbar(c)
+    # plt.savefig("fig.png")
+    # plt.show()
+    # quit()
     #==============================================================================    
     # Time Parameters
     #==============================================================================
@@ -139,7 +131,7 @@ if (__name__=='__main__'):
     #==============================================================================
     # FWI Solver Class
     #==============================================================================
-    fwisolver = solver.FWISolver(set_time,setup, setting,grid,utils,v0,vp,dens)
+    fwisolver = solver.FWISolver(set_time,setup, setting,grid,utils,v0,vp)
     #==============================================================================
 
     #==============================================================================

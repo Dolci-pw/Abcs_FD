@@ -574,46 +574,116 @@ def MarmoDenModel(setup,den):
 #==============================================================================
 
 #==============================================================================
+# Overthrust 3D
+# #==============================================================================
+def overthrust_2D(setup,vp, delta, abc):
+    
+    nptx = setup.nptx
+    nptz = setup.nptz
+    x0    = setup.x0
+    x1    = setup.x1
+    z0    = setup.z0
+    z1    = setup.z1
+    x0pml = setup.x0pml
+    x1pml = setup.x1pml
+    z0pml = setup.z0pml
+    z1pml = setup.z1pml
+    nx = nptx-2*setup.npmlx
+    nz = nptz-setup.npmlz
+    nptxvel = len(vp)
+    nptzvel = len(vp[0])
+    
+    x0vel   = 0
+    x1vel   = delta*nptxvel
+    z0vel   = 0
+    z1vel   = delta*nptzvel
+  
+    Xvel    = np.linspace(x0vel,x1vel,nptxvel)
+    Zvel    = np.linspace(z0vel,z1vel,nptzvel)
+
+    fscale = 10**(-3)
+    vp     = vp*fscale
+
+    X0   = np.linspace(x0vel,x1vel,nx)
+    Z0   = np.linspace(z0vel,z1vel,nz)
+    
+    C0x = np.zeros((nx,nptzvel))
+ 
+    for j in range(nptzvel):
+        x  = Xvel
+        z  = vp[0:nptxvel,j]
+        cs = interp1d(x,z,kind='linear',fill_value="extrapolate")
+        xs = X0
+        C0x[0:nptx,j] = cs(xs)
+    
+    v0 = np.zeros((nptx,nptz))  
+    
+    for i in range(nptx):
+        x  = Zvel
+        z  = C0x[i,0:nptzvel]
+        cs = interp1d(x,z,kind='linear',fill_value="extrapolate")
+        xs = Z0
+        v0[i,0:nptz] = cs(xs)
+
+    if(abc=='pml'):
+      
+        X1 = np.linspace((x0+0.5*setup.hx),(x1-0.5*setup.hx),nptx-1)
+        Z1 = np.linspace((z0+0.5*setup.hz),(z1-0.5*setup.hz),nptz-1)
+        
+        C11x = np.zeros((nptx-1,nptzvel))
+        
+        v1 = np.zeros((nptx-1,nptz-1))
+        
+        for j in range(nptzvel):
+            x = Xvel
+            z = vp[0:nptxvel,j]
+            cs = interp1d(x,z,kind='linear',fill_value="extrapolate")
+
+            xs = X1
+            C11x[0:nptx-1,j] = cs(xs)
+            
+        for i in range(nptx-1):
+            x  = Zvel
+            z  = C11x[i,0:nptzvel]
+            cs = interp1d(x,z,kind='linear', fill_value="extrapolate")
+            xs = Z1
+            v1[i,0:nptz-1] = cs(xs)
+
+        return v0, v1
+    
+    else:
+    
+        return v0
+
+#==============================================================================
 # Velocity Model
 #==============================================================================
 def SetVel(model,setup,setting,grid, **kwargs):
     
     (x, z)  = grid.dimensions
     
-    if(model['vp']=='Circle'):
-        vp_circle      = kwargs.get('vp_circle')
-        vp_background  = kwargs.get('vp_background')
-        r              = kwargs.get('r')
-        v0             = CircleIsot(setup,setting["Abcs"],r,vp_circle,vp_background)
-        d0m            = HomogDenModel(setup)
-        
-    elif(model['vp']=='Marmousi'):
+    if(model['vp']=='Marmousi'):
         
         vp_file  = kwargs.get('vp_file')
-        den_file = kwargs.get('den_file')
         
         if kwargs.get('start_model') == 'True':
            
             v0       = MarmoVelModel(setup, vp_file, setting["Abcs"])
-        d0m      = MarmoDenModel(setup, den_file)
         
         if kwargs.get('start_model') == 'Initial':
             max_vp = 4.5
             min_vp = 1.5
             v0       = LinearInitModel(setup,max_vp,min_vp,setting["Abcs"])
             
-
-    elif(model['vp']=='GM'):
-        
-        vp_file = kwargs.get('vp_file')
-        v0      = GMVelModel(setup, vp_file, setting["Abcs"])
-        d0m     = HomogDenModel(setup)
-    
     elif(model['vp']=='GMnew'):  
     
         vp_file = kwargs.get('vp_file')
         v0      = GMVelModelnew(setup, vp_file, setting["Abcs"])
         d0m     = HomogDenModel(setup)
+
+    elif(model['vp']=='Ovethrust'):
+        vp_file  = kwargs.get('vp_file')
+        v0 = overthrust_2D(setup,vp_file,0.025, setting["Abcs"])
 
     if(setting["Abcs"]=='pml'):
         
@@ -624,17 +694,12 @@ def SetVel(model,setup,setting,grid, **kwargs):
         vel1.data[setup.nptx-1,0:setup.nptz-1]    = vel1.data[setup.nptx-2,0:setup.nptz-1]
         vel1.data[0:setup.nptx,setup.nptz-1]      = vel1.data[0:setup.nptx,setup.nptz-2]
 
-        d0 = Function(name="d0",grid=grid,space_order=setup.sou,staggered=NODE,dtype=np.float64)
-        d0.data[:,:] = d0m
-        
-        return [vel0, vel1], v0[0], d0
+        return [vel0, vel1], v0[0]
     
     else:
         
         vel0 = Function(name="vel0",grid=grid,space_order=setup.sou,staggered=NODE,dtype=np.float64)
         vel0.data[:,:] = v0
-        d0 = Function(name="d0",grid=grid,space_order=setup.sou,staggered=NODE,dtype=np.float64)
-        d0.data[:,:] = d0m
         
-        return vel0, v0, d0
+        return vel0, v0
 #==============================================================================

@@ -380,7 +380,64 @@ def MarmoVelModel(setup,vp,abc):
     
         return v0
 #==============================================================================
+def LinearInitModel(setup, max_vp, min_vp, abc):
+    nptx  = setup.nptx
+    nptz  = setup.nptz
+    x0    = setup.x0
+    x1    = setup.x1
+    z0    = setup.z0
+    z1    = setup.z1
+    x0pml = setup.x0pml
+    x1pml = setup.x1pml
+    z0pml = setup.z0pml
+    z1pml = setup.z1pml
+  
+    X0   = np.linspace(x0,x1,nptx)
+    Z0   = np.linspace(z0,z1,nptz)
 
+    v0   = np.zeros((nptx,nptz))                     
+
+    xmpml = 0.5*(x0pml+x1pml)
+    zmpml = 0.5*(z0pml+z1pml)
+        
+    pxm = 0
+    pzm = 0
+        
+    for i in range(0,nptx):
+        
+        if(X0[i]==xmpml): pxm = i
+            
+    for j in range(0,nptz):
+        
+        if(Z0[j]==zmpml): pzm = j
+            
+    p0 = 0    
+    p2 = pzm
+    p4 = nptz
+
+    b  = min_vp
+    a  = (max_vp - b)/(setup.z1pml/1000) 
+    for i in range(setup.nptz-setup.npmlz):
+        z = i*setup.hz/1000
+        v0[:,i] = a*z + b
+    v0[0:setup.nptx,-setup.npmlz:setup.nptz] = max_vp
+
+    if(abc=='pml'):
+       
+        v1 = np.zeros((nptx-1,nptz-1))
+ 
+        b  = min_vp
+        a  = (max_vp - b)/(setup.z1pml/1000) 
+        for i in range(setup.nptz-1-setup.npmlz):
+            z = i*setup.hz/1000
+            v1[:,i] = a*z + b
+        v1[0:setup.nptx-1,-setup.npmlz:setup.nptz-1] = max_vp
+        
+        return v0,v1
+    
+    else:
+    
+        return v0
 #==============================================================================
 # Circle - Isotropic
 #==============================================================================      
@@ -524,7 +581,6 @@ def SetVel(model,setup,setting,grid, **kwargs):
     (x, z)  = grid.dimensions
     
     if(model['vp']=='Circle'):
-    
         vp_circle      = kwargs.get('vp_circle')
         vp_background  = kwargs.get('vp_background')
         r              = kwargs.get('r')
@@ -535,8 +591,17 @@ def SetVel(model,setup,setting,grid, **kwargs):
         
         vp_file  = kwargs.get('vp_file')
         den_file = kwargs.get('den_file')
-        v0       = MarmoVelModel(setup, vp_file, setting["Abcs"])
+        
+        if kwargs.get('start_model') == 'True':
+           
+            v0       = MarmoVelModel(setup, vp_file, setting["Abcs"])
         d0m      = MarmoDenModel(setup, den_file)
+        
+        if kwargs.get('start_model') == 'Initial':
+            max_vp = 4.5
+            min_vp = 1.5
+            v0       = LinearInitModel(setup,max_vp,min_vp,setting["Abcs"])
+            
 
     elif(model['vp']=='GM'):
         

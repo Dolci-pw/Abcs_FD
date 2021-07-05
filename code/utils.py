@@ -44,7 +44,7 @@ class ProblemSetup:
         self.z0pml  = self.z0                                          # Ponto Inicial do PML em X
         self.z1pml  = self.z1 - self.npmlz*self.hz                     # Ponto Inicial do PML em X
         self.tou        = 2                                            # Time Order Displacement 
-        self.sou        = 4                                            # Space Order Displacement    
+        self.sou        = 12                                            # Space Order Displacement    
         self.tn         = self.set["tn"]
         self.t0         = self.set["t0"]  
         self.cfl        = 0.4 
@@ -66,7 +66,8 @@ class ProblemSetup:
         vmax  = np.amax(v0) 
         dtmax = np.float64((min(self.hx,self.hz)*cfl)/(vmax))
         ntmax = int((tau)/dtmax)+1
-        dt0   = np.float64((tau)/ntmax) 
+        dt0   = 0.8507018290089323
+        # np.float64((tau)/ntmax) 
 
         time_range = TimeAxis(start=self.t0,stop=self.tn,step=dt0)
         nt         = time_range.num - 1 

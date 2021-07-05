@@ -49,7 +49,7 @@ class solverABCs():
             
                 d0.data[:,:] = 1.0
                 
-            rho_term = (1/d0)*(u.dx*d0.dx + u.dy*d0.dy)
+            rho_term = 0*(1/d0)*(u.dx*d0.dx + u.dy*d0.dy)
                 
             pde1 = Eq(u.dt2 + rho_term - u.laplace*vp*vp + vp*vp*damp*u.dtc)
               
@@ -132,7 +132,7 @@ class solverABCs():
             
             d0.data[:,:] = 1.0
                 
-        rho_term = (1/d0)*(u.dx*d0.dx + u.dy*d0.dy)
+        rho_term = 0*(1/d0)*(u.dx*d0.dx + u.dy*d0.dy)
 
         pde01   = Eq(u.dt2 + rho_term - u.laplace*vp[0]*vp[0]) 
                                                      
@@ -243,7 +243,7 @@ class solverABCs():
             
             d0.data[:,:] = 1.0
                 
-        rho_term = (1/d0)*(u.dx*d0.dx + u.dy*d0.dy)
+        rho_term = 0*(1/d0)*(u.dx*d0.dx + u.dy*d0.dy)
 
         pde0 = Eq(u.dt2 + rho_term - u.laplace*vp*vp)
         
@@ -584,7 +584,7 @@ class solverABCs():
             
             d0.data[:,:] = 1.0
                 
-        rho_term = (1/d0)*(u.dx*d0.dx + u.dy*d0.dy)
+        rho_term = 0*(1/d0)*(u.dx*d0.dx + u.dy*d0.dy)
             
         pde01   = Eq(u.dt2 + rho_term -u.laplace*vp*vp) 
         
@@ -761,7 +761,8 @@ class FWISolver():
         src = RickerSource(name='src',grid=grid,f0=setting["f0"],npoint=1,time_range=self.time_range,staggered=NODE,dtype=np.float64)
 
         # The shots start at the position sd in the physical domain
-        xposf = setting["x0"] + setting["shots_dist"] + setting["shots_dist"]*sn  
+        xposf = setting["x0"] + 100 + setting["shots_dist"]*sn  
+        print(xposf)
         src.coordinates.data[:, 0] = xposf
         src.coordinates.data[:, 1] = setting["shotposition_z"]
         
@@ -788,7 +789,7 @@ class FWISolver():
         op_fw = solv(rec,src,self.vp,self.d0,g,vector,grid,setup,system='forward',true_model=True)
         op_fw(dt=dt0)
 
-        return rec
+        return rec.data, u.data[0]
     #==============================================================================
 
     #==============================================================================
@@ -928,9 +929,6 @@ class FWISolver():
 
         J = 0.5*np.linalg.norm(residual.data.flatten())**2
   
-        grad.data[0:setup.npmlx,:] = 0.
-        grad.data[-setup.npmlx:setup.nptx,:] = 0.
-        grad.data[:,-setup.npmlz:setup.nptz] = 0.
-
+  
         return J, np.copy(grad.data)
     #==============================================================================
